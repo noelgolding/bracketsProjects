@@ -1,0 +1,38 @@
+<script>
+function paint() {
+    // create painting surface
+    canvas = document.createElement('canvas')
+    // let's make the canvas bigger!
+    canvas.width = 600;
+    canvas.height = 600;
+    
+    // get the paints and paint brushes
+    ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0,0,canvas.width, canvas.height);
+    //
+    // paint a picture
+    //
+    
+    // arrays!
+    // remember counting starts at 0
+    colors = ['red', 'orange', 'yellow', 'blue', 'indigo', 'violet'];
+    x = 0
+    y = 0
+    width = 20
+    height = 20
+    for(i = 0; i < colors.length; i++) {
+        ctx.fillStyle = colors[i];
+        ctx.fillRect(x, y, width, height);
+        // move the next square over and down 
+        // by re-assigning the x and y values.
+        x = x + width;
+        y = y + height;
+    }
+
+    // show it to the word
+    document.body.appendChild(canvas);
+}
+window.onload = paint;
+</script>

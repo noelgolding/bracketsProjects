@@ -1,0 +1,32 @@
+<script src="SimpleGameEngine.js"></script>
+<script>
+    var game; // for debugging, remove in production code.
+    
+    class Futbol extends SimpleGame{
+        init(){
+            this.gamefield = new SimpleGameBackground();
+            this.player1 = new SimpleGamePlayer({x:y:w:h:c:i:a:});
+            this.player2 = new SimpleGamePlayer();
+            this.ball = new SimpleGameObject();
+        }
+        
+        update(){
+            this.player1.update();
+            this.player2.update();
+            this.ball.update();
+        }
+        
+        draw(ctx){
+            this.gamefield.draw(ctx);
+            this.player1.draw(ctx);
+            this.player2.draw(ctx);
+            this.ball.draw(ctx);
+        }
+    }
+    
+    function main(){
+        game = new Futbol();
+        game.start();
+    }
+    window.addEventListener('load', main);
+</script>

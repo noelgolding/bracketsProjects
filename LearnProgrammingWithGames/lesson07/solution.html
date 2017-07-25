@@ -1,0 +1,160 @@
+<script src="../common/SimpleGameEngine.js"></script>
+<script>
+    letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    words = [
+        "Hot Apple Cider",
+        "Apple",
+        "Banana",
+        "Happy New Year",
+        "Orange",
+        "Grape",
+        "Harry Potter",
+        "Strawberry",
+        "Vanilla",
+        "Chocolate",
+        "Pool",
+        "Happy Birthday",
+        "Zebra",
+        "Hot Fudge Sundae",
+        "Watermelon",
+        "Hop on Spider Monkey",
+        "Merry Christmas",
+    ];
+    class Hangman extends SimpleGame {
+        init(){
+            this.maxIncorrectGuesses = 6;
+            this.word_index = 0;
+            this.availableLetters = letters.split('');
+            this.nextWord();
+        }
+        
+        nextWord(){
+            this.clickContinue = false;
+            this.incorrectGuesses = 0;
+            this.word_index = Math.floor(Math.random() * words.length);
+            console.log(this.word_index);
+            this.availableLetters = letters.split('');
+            this.word2guess = words[this.word_index].toUpperCase();
+            this.hideWord2Guess();
+        }
+        
+        hideWord2Guess(){
+            this.word2guess_ = this.word2guess.split('').fill("_");
+            // expose non-alpha characters
+            for (var i =0; i < this.word2guess.length; i++){
+                if(!letters.includes(this.word2guess[i])) {
+                   this.word2guess_[i] = this.word2guess[i];
+                }
+            }
+        }
+        
+        onMouseDown(e){
+            if (e.offsetY > 460) {
+                var slot = Math.floor(e.offsetX/20);
+                var guess = this.availableLetters[slot];
+                if (guess != ''){
+                    // remove this letter from avaiable guess
+                    this.availableLetters[slot] = '';
+                    // check if letter exists in the word2guess
+                    if (this.word2guess.includes(guess)) {
+                        // find all occurences of the guess
+                        for (var i=0; i < this.word2guess.length; i++){
+                            if(this.word2guess[i] == guess){
+                                this.word2guess_[i] = guess;
+                            }
+                        }
+                    } else {
+                        // incorrect guess
+                        this.incorrectGuesses = this.incorrectGuesses + 1;
+                    }
+                }
+            }
+        }
+        
+        update(){
+            if (this.incorrectGuesses >= this.maxIncorrectGuesses) {
+                alert("Sorry you didn't guess the word.\nThe correct answer is:\n\n\t" + this.word2guess);
+                this.nextWord();
+            } else if (!this.word2guess_.includes('_')){
+                alert("You guessed it!\n\n" + this.word2guess);
+                this.nextWord();
+            }
+        }
+        
+        draw(ctx){
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = "20px monospace";
+            
+            // draw the letters to choose from
+            for(var i = 0; i < this.availableLetters.length; i++){
+                var x = 20*i;
+                var cx = (20*i+10);
+                ctx.strokeRect(x, 460, 20, 20);
+                ctx.fillText(this.availableLetters[i], cx, 470);
+            }
+            
+            // draw the gallows
+            ctx.beginPath();
+            ctx.moveTo(160, 60);
+            ctx.lineTo(160, 20);
+            ctx.lineTo(260, 20);
+            ctx.lineTo(260, 340);
+            ctx.moveTo(140, 340);
+            ctx.lineTo(380, 340);
+            ctx.stroke();
+            
+            // draw any body parts
+            switch(this.incorrectGuesses){
+                case 6:
+                    // console.log("draw another leg");
+                    ctx.beginPath();
+                    ctx.moveTo(160, 220);
+                    ctx.lineTo(200, 260);
+                    ctx.stroke();
+                case 5:
+                    // console.log("draw a leg");
+                    ctx.beginPath();
+                    ctx.moveTo(160, 220);
+                    ctx.lineTo(120, 260);
+                    ctx.stroke();
+                case 4:
+                    // console.log("draw another arm");
+                    ctx.beginPath();
+                    ctx.moveTo(160, 120);
+                    ctx.lineTo(200, 160);
+                    ctx.stroke();
+                case 3:
+                    // console.log("draw an arm");
+                    ctx.beginPath();
+                    ctx.moveTo(160, 120);
+                    ctx.lineTo(120, 160);
+                    ctx.stroke();
+                case 2:
+                    // console.log("draw the body");
+                    ctx.beginPath();
+                    ctx.moveTo(160, 100);
+                    ctx.lineTo(160, 220);
+                    ctx.stroke();
+                case 1:
+                    // console.log("draw the head");
+                    ctx.beginPath();
+                    ctx.arc(160, 80, 20, 0, 2 * Math.PI, false);
+                    ctx.stroke();
+            }
+            
+            // draw the word to guess
+            ctx.font = "20px monospace";
+            ctx.fillText(this.word2guess_.join(' '), 260, 380);            
+        }
+    }
+    
+    function main(){
+        game = new Hangman("", 520, 480, 'black');
+        game.start();
+    }
+    
+    window.addEventListener('load', main);
+</script>

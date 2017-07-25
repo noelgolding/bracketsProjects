@@ -1,0 +1,81 @@
+<script src="../common/SimpleGameEngine.js"></script>
+<script>
+class Pong extends SimpleGame {
+    init(){
+        this.ballX = 312;
+        this.ballY = 232;
+        this.ballSpeedX = 3;
+        this.ballSpeedY = 3;
+        
+        this.playerSpeed = 6;
+        this.player1X = 0;
+        this.player1Y = 190;
+        this.player1SpeedY = 0;
+        this.player2X = 620;
+        this.player2Y = 190;
+        this.player2SpeedY = 0;
+    }
+    
+    handleInput(){
+        // player 1 (on the left) uses 'W' to move up and 'S' to move down
+        if("W".charCodeAt(0) in this.keypressed) {
+            this.player1SpeedY = this.playerSpeed * -1;
+        } else if ("S".charCodeAt(0) in this.keypressed){
+            this.player1SpeedY = this.playerSpeed;
+        } else {
+            this.player1SpeedY = 0;
+        }
+        // player 2 (on the right) uses 'I' to move up and 'K' to move down
+    }
+
+        
+    draw(ctx){
+        // draw the game board.
+        ctx.fillStyle = 'green';
+        ctx.fillRect(318, 0, 4, 480);
+        
+        // draw the paddles.
+        ctx.fillRect(this.player1X, this.player1Y, 20, 100);      // player1
+        ctx.fillRect(this.player2X, this.player2Y, 20, 100);    // player 2
+        
+        // draw the ball.
+        ctx.fillStyle = 'white';
+        ctx.fillRect(this.ballX, this.ballY, 16, 16);
+    }
+    
+    update(){
+        this.handleInput();
+        // bounce the ball around the screen.
+        this.ballX = this.ballX + this.ballSpeedX;
+        this.ballY = this.ballY + this.ballSpeedY;
+        
+        // check if the ball bounces of any of the sides.
+        // careful, some math below, but it's not too hard.
+        if (this.ballX < 0) {
+            this.ballX = 0;
+            this.ballSpeedX = this.ballSpeedX * -1;
+        } else if (this.ballX + 16 > this.canvas.width) {
+            this.ballX = this.canvas.width - 16;
+            this.ballSpeedX = this.ballSpeedX * -1;
+        }
+        
+        if (this.ballY < 0){
+            this.ballY = 0;
+            this.ballSpeedY = this.ballSpeedY * -1;
+        } else if (this.ballY + 16 > this.canvas.height) {
+            this.ballY = this.canvas.height - 16;
+            this.ballSpeedY = this.ballSpeedY * -1;
+        }
+        
+        // move the paddles to bounce the ball back to the other side.
+        this.player1Y = this.player1Y + this.player1SpeedY;
+    }
+}
+
+function main(){
+    game = new Pong("Pong", 640, 480, 'lightgreen');
+    game.start();
+}
+    
+window.addEventListener('load', main);
+</script>

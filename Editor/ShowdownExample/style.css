@@ -1,0 +1,51 @@
+html, body, section, .full-height{
+    height: 100%;
+}
+
+table {
+    border-collapse:separate;
+    border:solid black 1px;
+    border-radius:6px;
+    -moz-border-radius:6px;
+}
+
+tr {
+    border-radius:6px;
+}
+
+th {
+    border-right: solid black 1px;
+    background-color: aliceblue;
+}
+
+th:last-child {
+    border-right:none;
+}
+
+td {
+    border-collapse:separate;
+    border-top:solid black 1px;
+    border-right: solid black 1px;
+}
+
+td:last-child {
+    border-right: none;
+}
+
+#pad {
+    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+    
+    border: none;
+    overflow: auto;
+    outline: none;
+    resize: none;
+    
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+
+#markdown{
+    overflow: auto;
+    border-left: 1px solid black;
+}

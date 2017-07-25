@@ -1,0 +1,186 @@
+<script>
+    letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    words = [
+        "Hot Apple Cider",
+        "Apple",
+        "Banana",
+        "Happy New Year",
+        "Orange",
+        "Grape",
+        "Harry Potter",
+        "Strawberry",
+        "Vanilla",
+        "Chocolate",
+        "Pool",
+        "Happy Birthday",
+        "Zebra",
+        "Hot Fudge Sundae",
+        "Watermelon",
+        "Hop on Spider Monkey",
+        "Merry Christmas",
+    ];
+    
+    function main() {
+        //game = new Hangman("", 520, 480, );
+        maxIncorrectGuesses = 6;
+        word_index = 0;
+        availableLetters = letters.split('');
+        
+        // create painting surface
+        canvas = document.createElement('canvas')
+        document.body.appendChild(canvas);   
+
+        // get the paints and paint brushes
+        ctx = canvas.getContext('2d');
+
+        // set the dimensions to match our game design
+        canvas.width = 640;
+        canvas.height = 480;
+
+        // capture keyboard input
+        keyspressed = {};
+        window.addEventListener('keydown', (e) => keyspressed[e.code] = true);
+        window.addEventListener('keyup', (e) => delete keyspressed[e.code]);
+        canvas.addEventListener('mousedown', (e) => onMouseDown(e));
+
+        nextWord();
+                
+        
+        function nextWord(){
+            clickContinue = false;
+            incorrectGuesses = 0;
+            word_index = Math.floor(Math.random() * words.length);
+            console.log(word_index);
+            availableLetters = letters.split('');
+            word2guess = words[word_index].toUpperCase();
+            hideWord2Guess();
+        }
+        
+        function hideWord2Guess(){
+            word2guess_ = word2guess.split('').fill("_");
+            // expose non-alpha characters
+            for (i =0; i < word2guess.length; i++){
+                if(!letters.includes(word2guess[i])) {
+                   word2guess_[i] = word2guess[i];
+                }
+            }
+        }
+        
+        function onMouseDown(e){
+            if (e.offsetY > 460) {
+                slot = Math.floor(e.offsetX/20);
+                guess = availableLetters[slot];
+                if (guess != ''){
+                    // remove this letter from avaiable guess
+                    availableLetters[slot] = '';
+                    // check if letter exists in the word2guess
+                    if (word2guess.includes(guess)) {
+                        // find all occurences of the guess
+                        for (i=0; i < word2guess.length; i++){
+                            if(word2guess[i] == guess){
+                                word2guess_[i] = guess;
+                            }
+                        }
+                    } else {
+                        // incorrect guess
+                        incorrectGuesses = incorrectGuesses + 1;
+                    }
+                }
+            }
+        }
+        
+        function update(){
+            if (incorrectGuesses >= maxIncorrectGuesses) {
+                alert("Sorry you didn't guess the word.\nThe correct answer is:\n\n\t" + word2guess);
+                nextWord();
+            } else if (!word2guess_.includes('_')){
+                alert("You guessed it!\n\n" + word2guess);
+                nextWord();
+            }
+        }
+        
+        function draw(){
+            // clear the screen
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, 520, 480);
+            
+            
+            ctx.fillStyle = 'white';
+            ctx.strokeStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = "20px monospace";
+            
+            // draw the letters to choose from
+            for(i = 0; i < availableLetters.length; i++){
+                x = 20*i;
+                cx = (20*i+10);
+                ctx.strokeRect(x, 460, 20, 20);
+                ctx.fillText(availableLetters[i], cx, 470);
+            }
+            
+            // draw the gallows
+            ctx.beginPath();
+            ctx.moveTo(160, 60);
+            ctx.lineTo(160, 20);
+            ctx.lineTo(260, 20);
+            ctx.lineTo(260, 340);
+            ctx.moveTo(140, 340);
+            ctx.lineTo(380, 340);
+            ctx.stroke();
+            
+            // draw any body parts
+            switch(incorrectGuesses){
+                case 6:
+                    // console.log("draw another leg");
+                    ctx.beginPath();
+                    ctx.moveTo(160, 220);
+                    ctx.lineTo(200, 260);
+                    ctx.stroke();
+                case 5:
+                    // console.log("draw a leg");
+                    ctx.beginPath();
+                    ctx.moveTo(160, 220);
+                    ctx.lineTo(120, 260);
+                    ctx.stroke();
+                case 4:
+                    // console.log("draw another arm");
+                    ctx.beginPath();
+                    ctx.moveTo(160, 120);
+                    ctx.lineTo(200, 160);
+                    ctx.stroke();
+                case 3:
+                    // console.log("draw an arm");
+                    ctx.beginPath();
+                    ctx.moveTo(160, 120);
+                    ctx.lineTo(120, 160);
+                    ctx.stroke();
+                case 2:
+                    // console.log("draw the body");
+                    ctx.beginPath();
+                    ctx.moveTo(160, 100);
+                    ctx.lineTo(160, 220);
+                    ctx.stroke();
+                case 1:
+                    // console.log("draw the head");
+                    ctx.beginPath();
+                    ctx.arc(160, 80, 20, 0, 2 * Math.PI, false);
+                    ctx.stroke();
+            }
+            
+            // draw the word to guess
+            ctx.font = "20px monospace";
+            ctx.fillText(word2guess_.join(' '), 260, 380);            
+        }
+        
+        function gameloop(){
+            update();
+            draw();
+            requestAnimationFrame(() => gameloop());
+        }
+        gameloop();
+
+    }
+    
+    window.addEventListener('load', main);
+</script>

@@ -1,0 +1,529 @@
+<script src="../common/SimpleGameEngine.js"></script>
+<script>
+// TODO Add to SimpleGameEngine.js
+function getRand(i){
+    return Math.floor(Math.random() * i);
+}    
+    
+function clamp(i, min, max) {
+    if(i < min) {
+        return min;
+    } else if (i > max) {
+        return max;
+    } else {
+        return i;
+    }
+}
+    
+// TODO member variables?
+class Sprite{ // ABSTRACT
+    constructor(){
+        this.visible = false;
+        this.active = false;
+    }
+    
+    update(){}
+    draw(ctx){}
+    
+    suspend(){
+        this.visible = false;
+        this.active = false;
+    }
+    
+    restore(){
+        this.visible = true;
+        this.active = true;
+    }
+}
+
+class Sprite2D extends Sprite{ // ABSTRACT
+    constructor(x, y, c){
+        super();
+        this.x = x;
+        this.y = y;
+        this.color = c;
+    }
+}
+    
+class RectSprite extends Sprite2D{
+    constructor(x, y, w, h, c, f){
+        super(x, y, c);
+        this.width = w;
+        this.height = h;
+        this.fill = (f === true);
+        this.restore();
+    }
+    
+    draw(ctx){
+        if (this.visible){
+            if(this.fill === true) {
+                ctx.fillStyle = this.color
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }else{
+                ctx.strokeStyle = this.color
+                ctx.strokeRect(this.x, this.y, this.width, this.height);
+            }
+        }
+    }
+    
+    getRect(){
+        return [this.x, this.y, this.width, this.height];
+    }
+}
+
+class BitmapSprite extends Sprite{
+    constructor(img, x=0, y=0){
+        this.x = x;
+        this.y = y;
+        this.image = img;
+        if (img) {
+            this.width = img.width;
+            this.height = img.height;
+        }
+        this.restore();
+    }
+    
+    draw(ctx){
+        if(this.visibile){
+            ctx.drawImage(this.image, this.x, this.y);
+        }
+    }
+}
+
+// TODO interface? define contracts via comments?
+// Moveable interface
+class Moveable{    
+    setPosition(x, y){}
+    setVelocity(vx, vy){}
+    updatePosition(){}
+}
+    
+// Intersect interface
+class Intersect {
+    intersect(){} // see rectCollision function
+    hit(){}
+}
+
+</script>
+<script>
+const STANBY_EXIT = .95;
+const ATTACK_EXIT = .95;
+const RETREAT_EXIT = .95;
+const LAND_EXIT = .95;
+    
+const STANBY = "Standby";
+const ATTACKING = "Attacking";
+const RETREATING = "Retreaingt";
+const LANDING = "Landing";
+const LANDED = "Landed";
+const EXPLODING = "Exploding";
+const EXPLODED = "Exploded";
+
+const NUM_UFOS = 7;
+const KILL_FOR_NEXT_LEVEL = 13;
+    
+class UFOManager{
+    constructor(game){
+        this.game = game;
+        this.ufos = [];
+    }
+    
+    setTarget(target){
+        this.target = target;
+        this.initUfos(target);
+    }
+    
+    initUfos(target){
+        for (var i = 0; i < NUM_UFOS; i++){
+            var pos = this.initializePosition();
+            this.ufos.push(new UFO(pos.x, pos.y, 32, 16, "green", target));
+        }
+
+    }
+    
+    initializePosition(){
+        return {
+            x: getRand(this.game.width - 100) + 50,
+            y: getRand(this.game.height - 150) + 10
+        };
+    }
+    
+    newGame(){
+        this.level = 2;
+        this.ufosKilled = 0;
+        
+        for (var i = 0; i < NUM_UFOS; i++){
+            var pos = this.initializePosition();
+            this.ufos[i].x = pos.x;
+            this.ufos[i].y = pos.y;
+            if (i >= this.level) {
+                this.ufos[i].suspend();
+            }
+        }
+    }
+    
+    killed(){
+        this.ufosKilled++;
+        if (this.ufosKilled % KILL_FOR_NEXT_LEVEL === 0) {
+            this.level = (this.level >= NUM_UFOS) ? NUM_UFOS : ++this.level;
+        }
+    }
+    
+    update(){
+       for(var i = 0; i < this.ufos.length; i++) {
+           var ufo = this.ufos[i];
+           if (ufo.currentState === EXPLODED){
+               this.killed();
+               var pos = this.initializePosition();
+               ufo.x = pos.x;
+               ufo.y = pos.y;
+               ufo.restore();
+               ufo.startStandby();
+           } else if (ufo.active){
+               ufo.update();
+           }
+           
+           // ensure the ufo does not go off the edges
+           if (ufo.x < 0) {
+               ufo.x = 0;
+               ufo.flipX();
+           } else if (ufo.x > this.game.width - ufo.width) {
+               ufo.x = this.game.width - ufo.width;
+               ufo.flipX();
+           }
+           
+           // if the ufo is retreating, ensure it does not go off the top
+           if (ufo.currentState === RETREATING) {
+               if (ufo.y < 0) {
+                   ufo.y = 0;
+                   ufo.startStandby();
+               }
+           }
+           
+           // if the ufo is attacking, ensure it does not smash into the ground
+           if (ufo.currentState === ATTACKING) {
+               if (ufo.y > this.game.height - ufo.height) {
+                   ufo.y = this.game.height - ufo.height;
+                   ufo.startRetreat();
+               }
+           }
+           
+           // if the ufo is landing, ensure it stops on the ground
+           if (ufo.currentState === LANDING) {
+               if (ufo.y > this.game.height - ufo.height) {
+                   ufo.y = this.game.height - ufo.height;
+                   ufo.landed();
+               }
+           }
+        } 
+    }
+    
+    draw(ctx){
+        for(var i = 0; i < this.ufos.length; i++) {
+            this.ufos[i].draw(ctx);
+        }
+    }
+}
+   
+// TODO EXPLORE state classes.
+//class UFOState{
+//    constructor(vx, vy, color){
+//        this.vx = vx;
+//        this.vy = vy;
+//        this.color = color;
+//    }
+//}
+//    
+    
+class UFO extends RectSprite{
+    constructor(x, y, w, h, c, target){
+        super(x, y, w, h, c, true);
+        this.target = target;
+        this.startStandby();
+    }
+    
+    hit(){
+        if (this.active && this.currentState !== ATTACKING) {
+            console.log("UFO has been hit!");
+            this.startExplode();
+            return true;
+        } else {
+            this.y -= 17;
+            console.log("nice try");
+        }
+    }
+    
+    startStandby(){
+        this.setVelocity(getRand(8)-4, 0);
+        this.color = "green";
+        this.currentState = STANBY;
+    }
+    
+    startAttack(){
+        this.setVelocity(getRand(10)-5, getRand(5)+4);
+        this.color ="red";
+        this.currentState = ATTACKING;
+    }
+    
+    startRetreat(){
+        this.setVelocity(0, -getRand(3) -2);
+        this.color = "yellow";
+        this.currentState = RETREATING;
+    }
+    
+    startLand(){
+        this.setVelocity(0, getRand(3) + 2);
+        this.color = "green";
+        this.currentState = LANDING;
+    }
+    
+    landed(){
+        console.log("ufo landed");
+        this.setVelocity(0, 0);
+        this.color = "purple";
+        this.currentState = LANDED;
+    }
+    
+    startExplode(){
+        this.setVelocity(0, 0);
+        this.color = "orange";
+        this.active = false;
+        this.currentState = EXPLODING;
+        setTimeout(() => this.exploded(), 64);
+    }
+    
+    exploded(){
+        this.y = 0;
+        this.suspend();
+        this.currentState = EXPLODED;
+    }
+    
+    update(){
+        if ( rectCollision(this.getRect(), this.target.getRect()) ){
+            if (this.currentState === LANDED) {
+                // TODO something like block the player.
+            } else {
+                this.target.hit();
+                this.suspend();
+                if (this.currentState === ATTACKING) {
+                    this.y = 0;
+                    this.restore();
+                    this.startStandby();
+                }
+            }
+            return;
+        }
+        
+        // random number to determine if alien should exit current state
+        var r1 = Math.random();
+        // random number to determine which state to transition to
+        var r2 = Math.random();
+        switch(this.currentState){
+            case STANBY:
+                if (r1 > STANBY_EXIT) {
+                    if(r2 > .5) {
+                        this.startAttack();
+                    } else {
+                        this.startLand();
+                    }
+                }
+                break;
+            case ATTACKING: // mgr will retreat if too close to the ground
+                if (r1 > ATTACK_EXIT) {
+                    this.startRetreat();
+                }
+                break;
+            case RETREATING: // mgr will go to standby if too close to the top
+                if (r1 > RETREAT_EXIT){
+                    if(r2 > .5) {
+                        this.startAttack();
+                    } else {
+                        this.startStandby();
+                    }
+                }
+                break;
+            case LANDING:
+                if (r1 > LAND_EXIT){
+                    this.startStandby();
+                }
+                break;
+        }
+        
+        // randomly FLIP_X - Also mgr will FLIP_X if too close the edges
+        if (r2 > .9) {
+            this.flipX();
+        }
+        
+        this.updatePosition();
+    }
+    
+    flipX(){
+        this.setVelocity(-this.vx, this.vy);
+    }
+    
+    updatePosition(){
+        this.x += this.vx;
+        this.y += this.vy;
+    }
+    
+    setVelocity(vx, vy){
+        this.vx = vx;
+        this.vy = vy;
+    }
+}    
+    
+    
+const MISSILE_WIDTH = 3;
+const MISSILE_HEIGHT = 27;
+const MISSILE_SPEED = -27;
+const MISSILE_COLOR = "red";
+
+const GUN_WIDTH = 32;
+const GUN_HEIGHT = 32;
+const GUN_COLOR = "white";
+const GUN_SPEED = 5;
+
+class GunManager{
+    constructor(game){
+        this.game = game;
+        
+        this.gun = new GunSprite(this.game.width/2 - GUN_WIDTH/2, this.game.height-GUN_HEIGHT, GUN_WIDTH, GUN_HEIGHT, GUN_COLOR, true);
+        
+        this.missile = new MissileSprite(MISSILE_WIDTH, MISSILE_HEIGHT, MISSILE_COLOR, MISSILE_SPEED);
+    }
+    
+    setTargets(targets){
+        this.targets = targets;
+    }
+        
+    handleUserInput(){
+        if(this.game.keyspressed["ArrowLeft"] === true || this.game.keyspressed["KeyA"] === true) {
+            this.gun.vx = -1;
+        } else if (this.game.keyspressed["ArrowRight"] === true || this.game.keyspressed["KeyD"] === true) {
+            this.gun.vx = 1;
+        } else {
+            this.gun.vx = 0;
+        }
+        
+        if (this.game.keyspressed["Space"] === true) {
+            this.fireMissile();
+        }
+    }
+
+    fireMissile(){
+        if (this.gun.active) {
+            if(!this.missile.active) {
+                this.missile.init(this.gun.x + this.gun.width/2, this.gun.y, this.targets);
+            }
+        }
+    }
+    
+    update(){
+        this.handleUserInput();
+        this.gun.update();
+        this.gun.x = clamp(this.gun.x, 0, this.game.width - this.gun.width);
+        this.missile.update();
+    }
+    
+    draw(ctx){
+        this.missile.draw(ctx);
+        this.gun.draw(ctx);
+    }
+}
+    
+class MissileSprite extends RectSprite{
+    constructor(w, h, c, vy){
+        super(10, 10, w, h, c, true);
+        this.vy = vy;
+        this.suspend();
+        console.log(this.visible);
+    }
+    
+    init(x, y, targets){
+        this.x = x;
+        this.y = y;
+        this.targets = targets;
+        this.restore();
+    }
+    
+    update(){
+        if (this.active) {
+            this.y += this.vy;
+            
+            // check if the missile is offscreen
+            if (this.y < 0 + this.height) {
+                this.suspend();
+            }
+            
+            // check if the missile has hit a target
+            for(var i=0; i < this.targets.length; i++){
+                if(rectCollision(this.getRect(), this.targets[i].getRect())) {
+                    this.targets[i].hit();
+                    this.suspend();
+                    break;
+                }
+            }
+        }
+    }
+}
+    
+class GunSprite extends RectSprite{
+    hit(){
+        console.log("Gun is hit!");
+    }
+    
+    update(){
+        if (this.active) {
+            this.x += this.vx * GUN_SPEED; 
+        }
+    }
+    
+
+}
+
+class GameManager{
+    constructor(game){
+        this.game = game;
+        this.ufoMgr = new UFOManager(this.game);
+        this.gunMgr = new GunManager(this.game);
+        
+        this.ufoMgr.setTarget(this.gunMgr.gun);        
+        this.gunMgr.setTargets(this.ufoMgr.ufos);
+        
+        this.ufoMgr.newGame();
+    }
+    
+    update(){
+        this.gunMgr.update();
+        this.ufoMgr.update();
+    }
+    
+    draw(ctx){
+        this.gunMgr.draw(ctx);
+        this.ufoMgr.draw(ctx);
+    }    
+}    
+
+class AlienLanding extends SimpleGame{
+    init(){
+        console.log("Loading...");
+        this.gameMgr = new GameManager(this);
+        console.log("Ready");
+    }
+    
+    update(){
+        this.gameMgr.update();
+    }
+    
+    draw(ctx){
+        this.gameMgr.draw(ctx);
+    }    
+}
+    
+var game;
+function main(){
+    game = new AlienLanding("Alien Landing", 480, 600, "navy");
+    game.start();
+}
+window.addEventListener('load', main)
+</script>

@@ -1,0 +1,57 @@
+<script>
+function paint() {
+    // create painting surface
+    canvas = document.createElement('canvas')
+    // let's make the canvas bigger!
+    canvas.width = 600;
+    canvas.height = 600;
+    
+    // get the paints and paint brushes
+    ctx = canvas.getContext('2d');
+
+    //
+    // paint a picture
+    //
+    
+    // get some black paint
+    ctx.fillStyle = 'black';
+    // paint the entire canvas with the rectangle paintbrush
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    color = 'blue'
+    x = 0
+    y = 0
+    width = 20
+    height = 20
+    // get some blue paint
+    ctx.fillStyle = color;
+    
+    for(i = 0; i < canvas.width; i++) {
+        // paint a square with the rectangle paintbrush
+        ctx.fillRect(x, y, width, height);
+        // move the next square over and down 
+        // by re-assigning the x and y values.
+        x = x + width;
+        y = y + height;
+    }
+    
+    // how would you draw another diagonal to create an X?
+    x = 0;
+    y = canvas.height; // start from the bottom and work up.
+    for(i = 0; i < canvas.width; i++) {
+        // paint a square with the rectangle paintbrush
+        ctx.fillRect(x, y, width, height);
+        // move the next square over and down 
+        // by re-assigning the x and y values.
+        x = x + width;
+        y = y - height;
+    }
+    // Discuss why the diagonal is not exactly right, 
+    // starting at (0, canvas.height) will make the first box draw offscreen
+    // CHALLENGE! Fix it.  We will review challenges at the end of each section.
+    
+    // show it to the world
+    document.body.appendChild(canvas);
+}
+window.onload = paint;
+</script>

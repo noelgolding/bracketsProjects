@@ -1,0 +1,141 @@
+<script src="../common/SimpleGameEngine.js"></script>
+<script>
+class Sudoku extends SimpleGame{
+    init(){
+        this.cellWidth = 40;
+        this.cellHeight = this.cellWidth;
+        this.textOffsetX = this.cellWidth/2; 
+        this.textOffsetY = this.cellHeight/2; 
+        
+        this.gridX = [10,50,90,140,180,220,270,310,350];
+        this.gridY = [10,50,90,140,180,220,270,310,350];
+        
+        this.sudokuStart = [
+            [
+                [1,2,3,  4,5,6,  7,8,9],
+                [4,5,6,  7,8,9,  1,2,3],
+                [7,8,9,  1,2,3,  4,5,6]
+            ],
+            [
+                [2,3,4,  5,6,7,  8,9,1],
+                [5,6,7,  8,9,1,  2,3,4],
+                [8,9,1,  2,3,4,  5,6,7]
+            ],
+            [
+                [3,4,5,  6,7,8,  9,1,2],
+                [6,7,8,  9,1,2,  3,4,5],
+                [9,1,2,  3,4,5,  6,7,8]
+            ]
+        ];
+        
+        this.newBoard();
+    }
+    
+    transpose(board){
+        var temp1 = board[0].concat(board[1]).concat(board[2]);
+        var temp2 = []
+        for (var i=0; i < temp1.length; i++) {
+            temp2[i] = []
+            for (var j=0; j< temp1.length; j++) {
+                temp2[i][j] = temp1[j][i];
+            }
+        }
+        board[0][0] = temp2[0];
+        board[0][1] = temp2[1];
+        board[0][2] = temp2[2];
+        board[1][0] = temp2[3];
+        board[1][1] = temp2[4];
+        board[1][2] = temp2[5];
+        board[2][0] = temp2[6];
+        board[2][1] = temp2[7];
+        board[2][2] = temp2[8];
+    }
+    
+    swapRow(boardSection){
+        var a = Math.floor(Math.random() * boardSection.length);
+        var b = Math.floor(Math.random() * boardSection.length);
+        if (a == b) {
+            return;
+        }
+        var temp = boardSection[b].slice();
+        boardSection[b] = boardSection[a];
+        boardSection[a] = temp;
+    }
+    
+    shuffleBoard(board){
+        var shuffled = board.slice();
+        // shuffle the board a random amount of times
+        var numShuffles = Math.floor(Math.random() * 9);
+        for (var s=0; s < numShuffles; s++) { // TODO once transposing is solved
+            // for each major row, randomly swap a minor row
+            for (var M=0; M < board.length; M++) {
+                this.swapRow(board[M]);
+            }
+            // randomly swap a major row
+            this.swapRow(board);
+            // randomly decide to transpose board
+            if (Math.random() < .5){
+                this.transpose(shuffled);
+            }
+        }
+        // flatten the board
+        var flattened = [];
+        for (var M=0; M < shuffled.length; M++){
+            for (var m=0; m < shuffled[M].length; m++) {
+                for (var c=0; c < shuffled[M][m].length; c++){
+                    flattened.push(shuffled[M][m][c]);
+                }
+            }
+        }
+        // return shuffled board
+        return flattened;
+    }
+    
+    createPuzzle(board){
+        var puzzle = board.slice();
+        // empty cells based on difficulty
+        // return puzzle board
+        return puzzle;
+    }
+    
+    newBoard(){
+        // get a shuffled board
+        this.solvedPuzzle = this.shuffleBoard(this.sudokuStart);
+        // get a puzzle based on shuffled board
+        this.puzzle = this.createPuzzle(this.solvedPuzzle);
+    }
+    
+    draw(ctx){
+        // console.log("draw the grid.");
+        for (var row=0; row < this.gridY.length; row++) {
+            for (var col=0; col < this.gridX.length; col++) {
+                var x = this.gridX[col];
+                var y = this.gridY[row];
+                
+                // draw the cell
+                ctx.fillStyle = 'black';
+                ctx.strokeStyle = this.bgcolor;
+                ctx.fillRect(x, y, this.cellWidth, this.cellHeight);
+                ctx.strokeRect(x, y, this.cellWidth, this.cellHeight);
+                
+                // draw the number in the cell
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = 'lightblue';
+                ctx.font = "20px monospace";
+                
+                var v = row * 9 + col;
+                var text = this.puzzle[v];
+                ctx.fillText(text, x + this.textOffsetX, y + this.textOffsetY);
+            }
+        }
+    }
+
+}
+
+function main(){
+    game = new Sudoku("Sudoku", 400, 400, 'lightgray');
+    game.start()
+}
+window.addEventListener('load', main);
+</script>

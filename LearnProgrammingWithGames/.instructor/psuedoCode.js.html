@@ -1,0 +1,378 @@
+<script>
+// These are util classes / functions
+class Rect{
+    constructor(x, y, w, h){
+        this.position = {x: x, y: y};
+        this.dimensions = {width: w, height: h};
+    }
+    
+    getX(){
+        return this.position.x;
+    }
+    
+    getY(){
+        return this.position.y;
+    }
+    
+    getTop(){
+        return this.getY();
+    }
+    
+    getLeft(){
+        return this.getX();
+    }
+    
+    getBottom(){
+        return this.position.y + this.dimensions.height;
+    }
+    
+    getRight(){
+        return this.position.x + this.dimensions.width;
+    }
+    
+    getCenterX(){
+        return this.dimensions.width/2 + this.position.x;
+    }
+    
+    getCenterY(){
+        return this.dimensions.height/2 + this.position.y;
+    }
+    
+    
+    getCenter(){
+        return {x: this.getCenterX(), y: this.getCenterY()};
+    }
+    
+    intersects(otherRect) {
+        return (
+            this.getLeft() < otherRect.getRight()
+            && this.getRight() > otherRect.getLeft()
+            && this.getTop() < otherRect.getBottom()
+            && this.getBottom() > otherRect.getTop()
+        );
+    }
+}
+</script>
+
+<script>
+// Components?
+class InputHandler { // player has an InputHandler?
+    constructor(target, event, handler) {
+        this.target.addEventListener(event, handler);
+    }
+}
+</script>
+
+<script>
+// -- manages the game play --
+class SimpleGame {
+    constructor(name, width, height, bgcolor){
+        this.name = name;
+        
+        // * setup the dimensions of the displayable area  
+        this.width = width;
+        this.height = height;
+        this.bgColor = bgcolor || "black";
+        
+        // * setup the drawing surface and drawing tools 
+        this.canvas = document.createElement("canvas");
+        document.body.appendChild(this.canvas);
+        this.ctx = this.canvas.getContext("2d");
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+        
+        // clear the screen
+        this.cls();
+        
+        // * maintains the state of the game
+        this.gameIsRunning = false;
+        this.gameObjects = [];
+    }
+    
+    handleCollision(){} // meant to be implemented by subclasses 
+    
+    addEventHandler(target, event, handler) {
+        target.addEventListener(event, handler);
+    }
+    
+    start(){
+        document.title = this.name;
+        this.gameIsRunning = true;
+        this.gameloop(0);
+    }
+    
+    cls(){
+        this.ctx.fillStyle = this.bgColor;
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    
+    update(){
+        for(var i = 0; i < this.gameObjects.length; i++) {
+            this.gameObjects[i].update();
+        }
+        this.handleCollision();
+    }
+    
+    draw(){
+        // clear the screen, then draw everything.
+        this.cls();
+        for(var i = 0; i < this.gameObjects.length; i++) {
+            this.gameObjects[i].draw(this.ctx);
+        }
+    }
+    
+    // * maintains the simple game loop 
+    gameloop(n) {
+        if (this.gameIsRunning){
+            this.update();
+            this.draw();
+        }
+        requestAnimationFrame((n) => this.gameloop(n))
+    }
+}  
+    
+class SimpleGameObject {
+    constructor(x, y, w, h, id){
+        // * has a position
+        this.position = {x: x, y: y};
+        
+        // * has a height and width
+        this.width = w;
+        this.height = h;
+        
+        this.id = id;
+    }    
+    
+    // * update when the gameloop updates
+    update(){} // meant to be implemented by subclasses
+    
+    // * draw when the gameloop draws
+    draw(ctx){} // meant to be implemented by subclasses
+    
+    getRect(){
+        return new Rect(this.position.x, this.position.y, this.width, this.height);
+    }
+}
+</script>
+
+
+
+<script>
+// These are convenience classes
+class Block extends SimpleGameObject{
+    constructor(x, y, w, h, c, id){
+        super(x, y, w, h, id);
+        this.color = c;
+    }
+    
+    draw(ctx){
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
+    }
+}
+</script>
+
+
+
+
+<script>
+// Game Object Ids
+const BLOCK = "Block";
+const PLAYER = "Player";
+const BULLET = "Bullet";
+const ENEMY = "Enemy";
+
+class MyPlayer extends SimpleGameObject{
+    constructor(){
+        super(100, 100, 16, 24, PLAYER);
+        this.color = "lightyellow";
+        this.speed = 5;
+        this.velocity = {x: 0, y: 0};
+    }
+    
+    onKeyDown(e){
+        if (e.code === "ArrowUp") {
+            this.velocity.y = -this.speed;
+        } else if (e.code === "ArrowDown") {
+            this.velocity.y = this.speed;
+        }
+        
+        if (e.code === "ArrowLeft") {
+            this.velocity.x = -this.speed;
+        } else if (e.code === "ArrowRight") {
+            this.velocity.x = this.speed;
+        }
+    }
+    
+    onKeyUp(e){
+        if (e.code === "ArrowUp" && this.velocity.y < 0) {
+            this.velocity.y = 0;
+        } else if (e.code === "ArrowDown" && this.velocity.y > 0) {
+            this.velocity.y = 0;
+        }
+        
+        if (e.code === "ArrowLeft" && this.velocity.x < 0) {
+            this.velocity.x = 0;
+        } else if (e.code === "ArrowRight" && this.velocity.x > 0) {
+            this.velocity.x = 0;
+        } 
+    }
+
+    update(){
+        this.position.x += this.velocity.x;
+        this.position.y += this.velocity.y;
+    }
+    
+    draw(ctx){
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
+    }
+}
+
+colors = [null, "blue", "red"];
+blockSize = 16;
+pacmanlevel = `
+111111111111111111111111111111
+1             11             1
+1             11             1
+1  111  1111  11  1111  111  1
+1  111  1111  11  1111  111  1
+1                            1
+1                            1
+1  111  1  11111111  1  111  1
+1       1     11     1       1
+1       1     11     1       1
+111111  1111  11  1111  111111
+111111  1            1  111111
+111111  1            1  111111
+111111  1  22222222  1  111111
+           22222222          
+           22222222          
+111111  1  22222222  1  111111
+111111  1            1  111111
+111111  1            1  111111
+111111  1  11111111  1  111111
+1             11             1
+1             11             1
+1  111  1111  11  111111111  1
+1    1        3         1    1
+1    1                  1    1
+111  1  1  11111111  1  1  111
+1       1     11     1       1
+1       1     11     1       1
+1  111111111  11  111111111  1
+1                            1
+1                            1
+111111111111111111111111111111
+`;
+
+
+level = `
+111111111111111111111111111111
+1             11             1
+1             11             1
+1  111        11        111  1
+1  111                  111  1
+1                            1
+1                            1
+1      1     1111     1      1
+1      1      11      1      1
+11111  111          111   1111
+1      1              1      1
+1      1              1      1
+1      1      22      1      1
+11111111     2222     11111111
+1           222222           1
+1           222222           1
+1            2222            1
+1111   11            11   1111
+1111   11            11   1111
+1           111111           1
+1             11             1
+1                            1
+1    111              111    1
+1      1       3      1      1
+1      1              1      1
+111         111111         111
+1             11             1
+1                            1
+1  11111111        11111111  1
+1                            1
+1                            1
+111111111111111111111111111111
+`;
+
+
+class MyFirstGame extends SimpleGame{
+    constructor(){
+        super("My First Game!", blockSize*30, blockSize*32, "black");
+        this.player = new MyPlayer();
+        
+        this.addEventHandler(window, 'keydown', (e) => this.player.onKeyDown(e));
+        this.addEventHandler(window, 'keyup', (e) => this.player.onKeyUp(e));
+
+        this.currentLevel = 0;
+        this.loadLevel(this.currentLevel);
+        this.gameObjects.push(this.player); 
+        
+        this.bullets = [];
+        this.playerScore = 0;
+    }
+    
+    loadLevel(l){
+        this.gameObjects.length = 0;
+        var rows = level.trim().split("\n");
+        for (var y = 0; y < rows.length; y++){
+            var cols = rows[y].split("");
+            for(var x = 0; x < cols.length; x++) {
+                if (cols[x] === "1" || cols[x] === "2"){
+                    this.gameObjects.push(new Block(x*blockSize, y*blockSize, blockSize, blockSize,  colors[parseInt(cols[x])], BLOCK));
+                }
+                if (cols[x] === "3"){
+                    this.player.position.x = x*blockSize;
+                    this.player.position.y = y*blockSize;
+                }
+            }
+        }
+    }
+    
+    handleCollision(){
+        // check for player collisions with blocks
+        for (var i = 0; i < this.gameObjects.length; i++) {
+            if (this.gameObjects[i].id == PLAYER) {
+                continue;
+            }
+            
+            if (this.player.getRect().intersects(this.gameObjects[i].getRect())) {
+                this.player.position.x += -this.player.velocity.x
+                this.player.position.y += -this.player.velocity.y
+            }
+        }
+        
+        // check for bullet collisions
+        for (var b = this.bullets.length-1; b > 0; b--) {
+            for (var i = this.gameObjects.length-1; i > 0 ; i--) {
+                if (this.gameObjects[i].id === BLOCK || this.gameObjects[i].id === ENEMY) {
+                    // if bullet hits a block or enemy remove it from the list
+                    if (this.gameObjects[i].getRect().intersects(this.bullets[b].getRect())) {
+                        this.bullets.splice(b, 1);
+                        
+                        // if it was an enemy increase the players score!
+                        if (this.gameObjects[i].id === ENEMY){
+                            this.playerScore += 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+var game;    
+function main(){
+    game = new MyFirstGame();
+    game.start();
+}
+
+window.addEventListener('load', main);
+</script>

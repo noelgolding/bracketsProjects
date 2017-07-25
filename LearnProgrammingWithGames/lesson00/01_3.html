@@ -1,0 +1,35 @@
+<script>
+function paint() {
+    // create painting surface
+    canvas = document.createElement('canvas')
+    // let's make the canvas bigger!
+    canvas.width = 600;
+    canvas.height = 600;
+        
+    // get the paints and paint brushes
+    ctx = canvas.getContext('2d');
+
+    //
+    // paint a picture
+    //
+    
+    // get some black paint
+    ctx.fillStyle = 'black';
+    // paint the entire canvas with the rectangle paintbrush
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // get some blue paint
+    color = 'blue'
+    x = 125
+    y = 15
+    width = 40
+    height = 40
+    ctx.fillStyle = color;
+    // paint a square with the rectangle paintbrush
+    ctx.fillRect(x, y, width, height);
+    
+    // show it to the world
+    document.body.appendChild(canvas);
+}
+window.onload = paint;
+</script>

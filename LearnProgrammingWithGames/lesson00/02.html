@@ -1,0 +1,31 @@
+<script>
+function paint() {
+    // create painting surface
+    canvas = document.createElement('canvas')
+    ctx = canvas.getContext('2d');
+
+    // try changing the canvas size
+    canvas.width = 300;
+    canvas.height = 300;
+    
+    // set the canvas background color
+    // try changing the background color
+    bgcolor = 'orange';
+    ctx.fillStyle = bgcolor;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // draw a square using variables
+    // try chaning the values and refresh your paiting
+    color = 'blue';
+    x = 100;
+    y = 45;
+    width = 50;
+    height = 25;    
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, width, height);
+    
+    // show it to the world
+    document.body.appendChild(canvas);
+}
+window.onload = paint;
+</script>

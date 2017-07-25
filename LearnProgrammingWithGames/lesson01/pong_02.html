@@ -1,0 +1,27 @@
+<script src="../common/SimpleGameEngine.js"></script>
+<script>
+class Pong extends SimpleGame {
+    draw(ctx){
+        // draw the game board.
+        ctx.fillStyle = 'green';
+        ctx.fillRect(318, 0, 4, 480);
+        
+        // draw the paddles.
+        ctx.fillRect(0, 190, 20, 100);
+        ctx.fillRect(620, 190, 20, 100);
+        
+        // draw the ball.
+        ctx.fillStyle = 'white';
+        ctx.fillRect(312, 232, 16, 16);        
+    }
+    // bounce the ball around the screen.
+    // move the paddles to bounce the ball back to the other side.
+}
+
+function main(){
+    game = new Pong("Pong", 640, 480, 'lightgreen');
+    game.start();
+}
+    
+window.addEventListener('load', main);
+</script>

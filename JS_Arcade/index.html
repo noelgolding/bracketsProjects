@@ -1,0 +1,44 @@
+<html>
+	<head>
+		<title>Jonah's Arcade</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+		<script src="scripts/engine/myGameEngine.js"></script>
+		<script src="scripts/games/alienattack.js"></script>
+		<script src="scripts/games/bugout.js"></script>
+		<script src="scripts/games/poponod.js"></script>
+		<script src="scripts/games/jonahsworld.js"></script>
+		<script>
+			var game;
+			function chooseGame(el){
+				var games = {
+					"AlienAttack" 	: AlienAttack,
+					"BugOut" 		: BugOut,
+					"Poponod"		: Poponod,
+					"JonahsWorld"	: JonahsWorld
+				};
+				if (game) {
+					game.stop();
+				}
+				game = new games[el.value]("gameCanvas", "assets");
+				game.start();
+								
+				if (!el.options[0].value) {
+					el.options.remove(0);
+				}
+			}
+		</script>
+	</head>
+	<body>
+		<select style="position:absolute; top: 1px; left: 1px; z-index:999; background: rgba(255, 255, 255, .6);" onChange="chooseGame(this)">
+			<option value="">-- Select A Game --</option>
+			<option value="PingPong">Ping Pong</option>
+			<option value="Brick Breaker">Brick Breaker</option>
+			<option value="Snake">Snake</option>
+			<option value="AlienAttack">Alien Attack!</option>
+			<option value="BugOut">Bug Out!</option>
+			<option value="Poponod">Poponod</option>
+			<option value="JonahsWorld">Jonah's World!</option>
+		</select>
+		<canvas id="gameCanvas"></canvas>
+	</body>
+</html>

@@ -1,0 +1,26 @@
+<script>
+function paint() {
+    // create painting surface
+    canvas = document.createElement('canvas')
+    
+    // get the paints and paint brushes
+    ctx = canvas.getContext('2d');
+
+    //
+    // paint a picture
+    //
+    // get some black paint
+    ctx.fillStyle = 'black' ;
+    // paint the entire canvas with the rectangle paintbrush
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // get some blue paint
+    ctx.fillStyle = 'blue';
+    // paint a square with the rectangle paintbrush
+    ctx.fillRect(25, 25, 100, 100);
+   
+    // show it to the world
+    document.body.appendChild(canvas);
+}
+window.onload = paint;
+</script>

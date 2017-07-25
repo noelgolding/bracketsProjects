@@ -1,0 +1,127 @@
+<script src="../common/SimpleGameEngine.js"></script>
+<script>
+    class EatIt extends SimpleGame{
+        init(){
+            this.player = new SimpleGameObject(14*16, 23*16, 32, 32, 'yellow');
+            this.player.speed = 3;
+            this.player.velocityX = 0;
+            this.player.velocityY = 0;
+            
+            this.enemies = [
+                new SimpleGameObject(14*16, 11*16, 32, 32, 'red'),
+                new SimpleGameObject(12*16, 14*16, 32, 32, 'lightBlue'),
+                new SimpleGameObject(14*16, 14*16, 32, 32, 'pink'),
+                new SimpleGameObject(16*16, 14*16, 32, 32, 'orange')
+            ];
+            
+            this.powerUps = [
+                new SimpleGameObject(2*16-8, 3*16+8, 16, 16, 'white'),
+                new SimpleGameObject(2*16-8, 23*16+8, 16, 16, 'white'),
+                new SimpleGameObject(27*16-8, 3*16+8, 16, 16, 'white'),
+                new SimpleGameObject(27*16-8, 23*16+8, 16, 16, 'white')
+            ];
+            
+            this.walls = [
+                // outer walls
+                new SimpleGameObject(0, 0, 16, 14*16, 'blue'),
+                new SimpleGameObject(0, 16*16, 16, 15*16, 'blue'),
+                new SimpleGameObject(0, 0, 30*16, 16, 'blue'),
+                new SimpleGameObject(0, 31*16, 30*16, 16, 'blue'),
+                new SimpleGameObject(29*16, 0, 16, 14*16, 'blue'),
+                new SimpleGameObject(29*16, 16*16, 16, 15*16, 'blue'),
+                
+                // inner walls
+                new SimpleGameObject(16, 10*16, 5*16, 4*16, 'blue'),
+                new SimpleGameObject(16, 16*16, 5*16, 4*16, 'blue'),
+                new SimpleGameObject(16, 25*16, 2*16, 16, 'blue'),
+                new SimpleGameObject(3*16, 3*16, 3*16, 2*16, 'blue'),
+                new SimpleGameObject(3*16, 7*16, 3*16, 16, 'blue'),
+                new SimpleGameObject(3*16, 22*16, 3*16, 16, 'blue'),
+                new SimpleGameObject(5*16, 23*16, 16, 3*16, 'blue'),
+                new SimpleGameObject(3*16, 28*16, 9*16, 16, 'blue'),
+                new SimpleGameObject(8*16, 25*16, 16, 3*16, 'blue'),
+
+
+                // enemy base
+                new SimpleGameObject(11*16, 13*16, 8*16, 4*16, 'blue')
+            ];
+        }
+        
+        update(){
+            if ("W".charCodeAt(0) in this.keypressed) {
+                // move the player up.
+                this.player.velocityY = -this.player.speed;
+                this.player.velocityX = 0;
+            } else if ("S".charCodeAt(0) in this.keypressed) {
+                // move the player down.
+                this.player.velocityY = this.player.speed;
+                this.player.velocityX = 0;
+            }
+            
+            if ("A".charCodeAt(0) in this.keypressed) {
+                // move the player left.
+                this.player.velocityX = -this.player.speed;
+                this.player.velocityY = 0;
+            } else if ("D".charCodeAt(0) in this.keypressed) {
+                // move the player right.
+                this.player.velocityX = this.player.speed;
+                this.player.velocityY = 0;
+            }
+            
+            this.player.x = this.player.x + this.player.velocityX;
+            this.player.y = this.player.y + this.player.velocityY;
+            
+            
+            // check if player hits wall
+            for (var w=0; w < this.walls.length; w++){
+                if (rectCollision(this.player.getRect(), this.walls[w].getRect())) {
+                    if (this.player.velocityY < 0) {
+                        this.player.y = this.walls[w].y + this.walls[w].height;
+                    } else if (this.player.velocityY > 0) {
+                        this.player.y = this.walls[w].y - this.player.height;
+                    }
+                    
+                    if (this.player.velocityX < 0) {
+                        this.player.x = this.walls[w].x + this.walls[w].width;
+                    } else if (this.player.velocityX > 0) {
+                        this.player.x = this.walls[w].x - this.player.width;
+                    }
+                    
+                    this.player.velocityX = 0;
+                    this.player.velocityY = 0;
+                }
+            }
+            
+            // check if player is warping
+            if (this.player.x  < 0) {
+                this.player.x = this.canvas.width-this.player.width;
+            } else if (this.player.x + this.player.width > this.canvas.width) {
+                this.player.x = 1;
+            }
+
+        }
+        
+        draw(ctx){
+            for (var w=0; w < this.walls.length; w++){
+                this.walls[w].draw(ctx);
+            }
+            
+            for(var p=0; p < this.powerUps.length; p++){
+                this.powerUps[p].draw(ctx);
+            }
+            
+            for(var e=0; e < this.enemies.length; e++) {
+                this.enemies[e].draw(ctx);
+            }
+            
+            this.player.draw(ctx);
+        }
+    }
+    
+    function main(){
+        game = new EatIt("Eat It!", 30*16, 32*16, 'black');
+        game.start();
+    }
+    
+    window.addEventListener('load', main);
+</script>
