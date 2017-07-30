@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="css/codemaster.css">
+    <title>Code Gamer</title>
+  </head>
+
+<!-- START FRAME LAYOUT -->
+    <div id="main-frame">
+
+<!-- START MENU BAR -->
+      <div id="menubar">
+
+          <section class="logo">Code&nbsp;Master</section>
+
+          <section id="level-controls">
+            <span><button id="prevLevel"> < </button></span>
+            <span><select id="selectLevel"><option value="1">1</option><option value="2">2</option></select></span>
+            <span><button id="nextLevel"> > </button></span>
+          </section>
+
+          <section>Help</section>
+
+      </div>
+<!-- END MENU BAR -->
+
+<!-- START GAME PLAY LAYOUT -->
+      <div id="game-pane">
+
+<!-- START LEFT PANE LAYOUT -->
+        <div id="left-pane">
+          <div class="pane-top">
+            <canvas id="game-canvas" width="480" height="424"></canvas>
+          </div>
+
+          <div class="pane-bottom">
+            <div id="game-console-container">
+              <div tabindex="0" contenteditable="true" id="game-console"></div>
+            </div>
+          </div>
+        </div>
+<!-- END LEFT PANE LAYOUT -->
+
+<!-- START RIGHT PANE LAYOUT -->
+        <div id="right-pane">
+<!-- START TOP RIGHT PANEL -->
+          <div class="pane-top">
+            <div id="assets-panel">
+              <ul>
+              <li class="run">run()</li>
+              <li class="jump">jump()</li>
+              <li class="slide">slide()</li>
+              <li class="if_6">if (___) then goto ___ else goto ___</li>
+              </ul>
+            </div>
+          </div>
+<!-- END TOP RIGHT PANEL -->
+<!-- START TOP BOTTOM PANEL -->
+          <div class="pane-bottom">
+            <div id="plan-panel"></div>
+          </div>
+<!-- END BOTTOM RIGHT PANEL -->
+        </div>
+<!-- END RIGHT PANE LAYOUT -->
+      </div>
+<!-- END GAME PLAY LAYOUT -->
+
+<!-- START STATUS BAR -->
+      <div id="status-bar">Ready</div>
+<!-- END STATUS BAR -->
+
+    </div>
+<!-- END FRAME LAYOUT -->
+
+
+
+<!-- SCRIPTS -->
+    <script src="scripts/helper.js"></script>
+    <script src="scripts/levels.js"></script>
+    <script>
+    const statusBar = document.getElementById("status-bar");
+    const assetsPanel = document.getElementById("assets-panel");
+    const planPanel = document.getElementById("plan-panel");
+    const gameConsole = document.getElementById("game-console");
+    const gameCanvas = document.getElementById("game-canvas");
+    const ctx = gameCanvas.getContext("2d");
+
+    var currentStep;
+    var currentPlan;
+    var currentLevel;
+    var currentLevelImage;
+    var playerPosition;
+    var portalPosition;
+    var gemPositions;
+    var gemsCollected;
+    var availableTokens;
+
+    function loadLevel(n) {
+      logInfo("Loading level " + n + " ... ");
+      currentLevel = level[n];
+      planPanel.style.backgroundImage = `url('${currentLevel.scroll.image}')`;
+      currentLevelImage = loadImage(loadLevelInternal);
+    }
+
+    function updateAssets() {
+      assetsPanel.innerHTML = "";
+      var ul = document.createElement('ul');
+      for (var i = 0; i < availableTokens.length; i++) {
+        var li = document.createElement('li');
+        li.className = availableTokens[i].className;
+        li.innerText = availableTokens[i].command;
+        ul.appendChild(li);
+      }
+      assetsPanel.appendChild(ul);
+    }
+
+    function loadLevelInternal(){
+      gameCanvas.width = currentLevelImage.width;
+      gameCanvas.height = currentLevelImage.height;
+      resetLevel();
+      logInfo("Ready");
+    }
+
+    function resetLevel () {
+      var l = currentLevel;
+      playerPosition = l.setup.startNode;
+      portalPosition = l.setup.portalNode;
+      gemPositions = l.setup.gemNodes.slice();
+      gemsCollected = 0;
+      currentStep = 0;
+      currentPlan = [];
+      availableTokens = [];
+      for (var i = 0; i < l.setup.tokens.length; i++) {
+        for (var j = 0; j < l.setup.tokens[i].count; j++){
+          availableTokens.push(l.setup.tokens[i].token);
+        }
+      }
+      availableTokens = availableTokens.concat(l.setup.conditionals.slice());
+      updateLevel();
+    }
+
+    function updateLevel() {
+      var l = currentLevel;
+      updateAssets();
+
+      // clear the screen
+      ctx.drawImage(currentLevelImage, 0, 0);
+
+      // draw nodes
+      for (var i = 0; i < l.map.nodeCoords.length; i++) {
+        drawCircle(ctx, l.map.nodeCoords[i][0], l.map.nodeCoords[i][1], 25, "black", null);
+      }
+
+      // draw portal and player start positions
+      drawCircle(ctx, l.map.nodeCoords[portalPosition][0], l.map.nodeCoords[portalPosition][1], 15, "black", "rgba(200,200,200,.5)");
+      drawCircle(ctx, l.map.nodeCoords[playerPosition][0], l.map.nodeCoords[playerPosition][1], 15, "black", "rgba(255,0,0,.5)");
+
+      // draw the gems
+      for (var i = 0; i < gemPositions.length; i++) {
+        if (gemPositions[i] !== -1) {
+          drawCircle(ctx, l.map.nodeCoords[gemPositions[i]][0], l.map.nodeCoords[gemPositions[i]][1], 10, "black", "rgba(0,0,255,.5)");
+        }
+      }
+
+      // draw gems collected
+      ctx.font="30px monospace";
+      ctx.textBaseline = "top"
+      ctx.textAlign = "right";
+      ctx.strokeStyle = "black";
+      ctx.strokeText(`Gems: ${gemsCollected}`, gameCanvas.width - 10, 5);
+      ctx.fillStyle = "blue";
+      ctx.fillText(`Gems: ${gemsCollected}`, gameCanvas.width - 10, 5);
+    }
+
+    function getTokenFromCommand(command) {
+      var c = command.replace(/ +/g, "").replace(/\)else/g, ");else");
+      for (var i = 0; i < availableTokens.length; i++) {
+        var token = availableTokens[i];
+        if (token.command === undefined) {
+          continue;
+        }
+        var t = token.command.replace(/ +/g, "");
+        if (t === c) {
+          availableTokens.splice(i,1);
+          updateAssets();
+          return token;
+        }
+      }
+      // if we get here, we have an invalid command
+    }
+
+    /** Action Commands **/
+    function run(){
+      execAction(RUN);
+    }
+
+    function jump(){
+      execAction(JUMP);
+    }
+
+    function slide(){
+      execAction(SLIDE);
+    }
+
+    function execActionDEPRECATED(action) {
+      console.log(action);
+      var gotoNode = currentLevel.map.nodeGraph[playerPosition].indexOf(action);
+      if (gotoNode === -1) {
+        throw `You cannot ${action.command} from ${playerPosition}. :(`;
+      }
+      logSuccess(`You can ${action.command} from ${playerPosition} to ${gotoNode}!`);
+      playerPosition = gotoNode;
+    }
+
+    function execActionNEW(action) {
+      console.log(action);
+      var gotoNode = -1;
+      var targetNodes = currentLevel.map.nodeGraph[playerPosition].indexOf(action);
+      for (var i = 0; i < targetNodes.length; i++) {
+        var target = targetNodes[i]
+        consol.log(target);
+        if ( (target === action)
+              ||
+            ( target.constructor === Array &&  target.includes(action) )
+          ){
+          gotoNode = i;
+          break;
+        }
+
+      }
+      if (gotoNode === -1) {
+        throw `You cannot ${action.command} from ${playerPosition}. :(`;
+      }
+      logSuccess(`You can ${action.command} from ${playerPosition} to ${gotoNode}!`);
+      playerPosition = gotoNode;
+    }
+
+    var execAction = execActionDEPRECATED;
+    function goto(s){
+      currentStep = s-1;
+    }
+
+    /** collect gems **/
+    function collectGem(){
+      var gemIndex = gemPositions.indexOf(playerPosition);
+      if(gemIndex !== -1) {
+        gemsCollected++;
+        gemPositions[gemIndex] = -1;
+      }
+    }
+
+    function execStep(id) {
+      var command = currentPlan[id];
+      currentStep++;
+      console.log(id, command, currentPlan);
+      for (var d = 1000*8; d > 0; d--) {
+        console.log(`${d} milliseconds until next step'`);
+      }
+      return execCommand(command.command);
+    }
+
+    function execCommand(command){
+      var err;
+      var success = false;
+      try {
+        eval(command);
+        success = true;
+        collectGem();
+        updateLevel();
+      } catch (e) {
+          console.log(e);
+          err = e;
+      }
+      return {err: err, success: success};
+    }
+
+    function executeProgram(){
+      logInfo("executing program ...");
+      resetLevel();
+      console.log(gameConsole.innerText);
+      var commands = gameConsole.innerText.trim().split("\n");
+      for (var i = 0; i < commands.length; i++) {
+        var line = i + 1;
+        var command = commands[i].trim();
+        var token = getTokenFromCommand(command);
+
+        // Test if the command is valid
+        if (!token) {
+          logErr(`No available tokens for instruction on line ${line}: '${command}'.`);
+          return;
+        }
+
+        // Test if this command is valid for this step
+        if (token.tokenType === currentLevel.scroll.nodeTypes[line]) {
+          currentPlan.push(token);
+        } else {
+          logErr(`Invalid instruction for step ${line}: '${command}'.  Expected ${currentLevel.scroll.nodeTypes[line].name} but was ${token.tokenType.name}`);
+          return;
+        }
+      }
+
+      console.log(playerPosition);
+      var delayMs = 0;
+      var delayMsIncrement = 1000;
+      for (; currentStep < currentPlan.length;) {
+        // if (currentStep < currentPlan.length) {
+
+        // }
+        console.log("currentStep", currentStep);
+        var result = execStep(currentStep);
+        if (!result.success) {
+          logErr(result.err);
+          break;
+        }
+      }
+
+      console.log("check if plan is full");
+      if(availableTokens.length > 0) {
+        logErr("You don't have a complete program");
+        return;
+      }
+
+      console.log("check if player is on the portal");
+      if(playerPosition !== portalPosition) {
+        logErr("You have to end on the portal");
+        return;
+      }
+
+      console.log("check if all gems have been collected");
+      if(gemsCollected !== gemPositions.length) {
+        logErr("You have to collect all the gems");
+        return;
+      }
+
+      logSuccess("You have successfully completed this level!");
+    }
+
+    function logInfo(msg){
+      logStatus(msg, "info");
+    }
+    function logErr(msg){
+      logStatus(msg, "err");
+    }
+    function logSuccess(msg){
+      logStatus(msg, "success");
+    }
+    function logStatus(msg, c){
+      statusBar.className = c;
+      statusBar.innerText = msg;
+      console.error(`${c}: ${msg}`);
+    }
+
+    function onKeyDown(e){
+      if ((e.code === "F5") || (e.code === "KeyR" && (e.metaKey === true || e.ctrlKey === true))) {
+        e.preventDefault();
+        executeProgram();
+      } // TODO : on enter validate command, and start to build plan
+    }
+
+    window.onload = function(){
+      console.log("Let the games begin!");
+      loadLevel(2);
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    </script>
+  </body>
+</html>
