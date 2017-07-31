@@ -148,18 +148,18 @@
       ctx.drawImage(currentLevelImage, 0, 0);
 
       // draw nodes
-      for (var i = 0; i < l.map.nodeCoords.length; i++) {
-        drawCircle(ctx, l.map.nodeCoords[i][0], l.map.nodeCoords[i][1], 25, "black", null);
-      }
+      // for (var i = 0; i < l.map.nodeCoords.length; i++) {
+      //   drawCircle(ctx, l.map.nodeCoords[i][0], l.map.nodeCoords[i][1], 25, "orange", null);
+      // }
 
       // draw portal and player start positions
       drawCircle(ctx, l.map.nodeCoords[portalPosition][0], l.map.nodeCoords[portalPosition][1], 15, "black", "rgba(200,200,200,.5)");
-      drawCircle(ctx, l.map.nodeCoords[playerPosition][0], l.map.nodeCoords[playerPosition][1], 15, "black", "rgba(255,0,0,.5)");
+      drawCircle(ctx, l.map.nodeCoords[playerPosition][0], l.map.nodeCoords[playerPosition][1], 15, "red", "rgba(255,0,0,.5)");
 
       // draw the gems
       for (var i = 0; i < gemPositions.length; i++) {
         if (gemPositions[i] !== -1) {
-          drawCircle(ctx, l.map.nodeCoords[gemPositions[i]][0], l.map.nodeCoords[gemPositions[i]][1], 10, "black", "rgba(0,0,255,.5)");
+          drawCircle(ctx, l.map.nodeCoords[gemPositions[i]][0], l.map.nodeCoords[gemPositions[i]][1], 10, "blue", "rgba(0,0,255,.5)");
         }
       }
 
@@ -360,7 +360,7 @@
 
     window.onload = function(){
       console.log("Let the games begin!");
-      loadLevel(2);
+      loadLevel(3);
     };
 
     window.addEventListener('keydown', onKeyDown);

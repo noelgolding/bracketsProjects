@@ -35,6 +35,7 @@ function drawCircle(ctx, x, y, r, s, f) {
     ctx.fill();
   }
   if (s) {
+    ctx.lineWidth = 3;
     ctx.strokeStyle = s;
     ctx.stroke();
   }
