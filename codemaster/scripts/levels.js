@@ -271,7 +271,7 @@ var mapDef = [null,
 /* SCROLL DEFINITIONS */
 /* ================== */
 var scrollDef = [null,
-  {
+{
     name: 1,
     image: "images/scroll1.jpg",
     nodeTypes: [PLAYER, ACTION, ACTION, ACTION, ACTION, PORTAL],
@@ -291,8 +291,52 @@ var scrollDef = [null,
       [0, 0, 0, 0, 0, 1], // action node
       [0, 0, 0, 0, 0, 0], // portal node
     ]
-  },
-2, 3,
+},
+{
+    name: 2,
+    image: "images/scroll2.jpg",
+    nodeTypes: [PLAYER, ACTION, ACTION, ACTION, ACTION,  ACTION, PORTAL],
+    nodeCoords: [
+      [36, 128],  // TODO : player node
+      [119, 128], // TODO : action node
+      [199, 128], // TODO : action node
+      [282, 128], // TODO : action node
+      [282, 128], // TODO : action node
+      [481, 128], // TODO : portal node
+    ],
+    nodeGraph: [
+      [0, 1, 0, 0, 0, 0, 0], // player node
+      [0, 0, 1, 0, 0, 0, 0], // action node
+      [0, 0, 0, 1, 0, 0, 0], // action node
+      [0, 0, 0, 0, 1, 0, 0], // action node
+      [0, 0, 0, 0, 0, 1, 0], // action node
+      [0, 0, 0, 0, 0, 0, 1], // action node
+      [0, 0, 0, 0, 0, 0, 0], // portal node
+    ]
+},
+{
+    name: 3,
+    image: "images/scroll3.jpg",
+    nodeTypes: [PLAYER, ACTION, ACTION, ACTION, ACTION, ACTION, ACTION, PORTAL],
+    nodeCoords: [
+      [36, 128],  // TODO : player node
+      [119, 128], // TODO : action node
+      [199, 128], // TODO : action node
+      [282, 128], // TODO : action node
+      [282, 128], // TODO : action node
+      [481, 128], // TODO : portal node
+    ],
+    nodeGraph: [
+      [0, 1, 0, 0, 0, 0, 0, 0], // player node
+      [0, 0, 1, 0, 0, 0, 0, 0], // action node
+      [0, 0, 0, 1, 0, 0, 0, 0], // action node
+      [0, 0, 0, 0, 1, 0, 0, 0], // action node
+      [0, 0, 0, 0, 0, 1, 0, 0], // action node
+      [0, 0, 0, 0, 0, 0, 1, 0], // action node
+      [0, 0, 0, 0, 0, 0, 0, 1], // action node
+      [0, 0, 0, 0, 0, 0, 0, 0], // portal node
+    ]
+},
 {
   name: 4,
   image: "images/scroll4.jpg",
@@ -313,6 +357,52 @@ var scrollDef = [null,
     [0, 1, 0, 0, 0, 1], // conditional node
     [0, 0, 0, 0, 0, 0], // portal node
   ]
+},
+{
+    name: 5,
+    image: "images/scroll5.jpg",
+    nodeTypes: [PLAYER, ACTION, ACTION, ACTION, ACTION, ACTION, ACTION, ACTION, PORTAL],
+    nodeCoords: [
+      [36, 128],  // TODO : player node
+      [119, 128], // TODO : action node
+      [199, 128], // TODO : action node
+      [282, 128], // TODO : action node
+      [282, 128], // TODO : action node
+      [481, 128], // TODO : portal node
+    ],
+    nodeGraph: [
+      [0, 1, 0, 0, 0, 0, 0, 0, 0], // player node
+      [0, 0, 1, 0, 0, 0, 0, 0, 0], // action node
+      [0, 0, 0, 1, 0, 0, 0, 0, 0], // action node
+      [0, 0, 0, 0, 1, 0, 0, 0, 0], // action node
+      [0, 0, 0, 0, 0, 1, 0, 0, 0], // action node
+      [0, 0, 0, 0, 0, 0, 1, 0, 0], // action node
+      [0, 0, 0, 0, 0, 0, 0, 1, 0], // action node
+      [0, 0, 0, 0, 0, 0, 0, 0, 1], // action node
+      [0, 0, 0, 0, 0, 0, 0, 0, 0], // portal node
+    ]
+},
+{
+    name: 6,
+    image: "images/scroll6.jpg",
+    nodeTypes: [PLAYER, ACTION, ACTION, ACTION, ACTION, CONDITIONAL, PORTAL],
+    nodeCoords: [
+      [36, 128],  // TODO : player node
+      [119, 128], // TODO : action node
+      [199, 128], // TODO : action node
+      [282, 128], // TODO : action node
+      [282, 128], // TODO : action node
+      [481, 128], // TODO : portal node
+    ],
+    nodeGraph: [
+      [0, 1, 0, 0, 0, 0, 0], // player node
+      [0, 0, 1, 0, 0, 0, 0], // action node
+      [0, 0, 0, 1, 0, 0, 0], // action node
+      [0, 0, 0, 0, 1, 0, 0], // action node
+      [0, 0, 0, 0, 0, 1, 0], // action node
+      [0, 1, 0, 0, 0, 0, 1], // conditional node
+      [0, 0, 0, 0, 0, 0, 0], // portal node
+    ]
 }
 ];
 
