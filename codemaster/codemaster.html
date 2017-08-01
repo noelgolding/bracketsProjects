@@ -129,24 +129,131 @@
 
 
 
-
+    
 
     </script>
     <script src="scripts/helper.js"></script>
     <script src="scripts/levels.js"></script>
     <script>
     /** CODE MASTER JS-API **/
-    var currentStep;
-    var currentPlan;
+    // GLOBALS
+    var nextStep;
+    var currentScroll;
     var currentLevel;
-    var currentLevelImage;
     var playerPosition;
     var portalPosition;
     var gemPositions;
     var gems;
+    
+    // CLASSES
+    function Scroll(settings){
+        this.settings = settings;
+        this.plan = [];
+        
+        this.append = function(token) {
+            var nextStep = this.plan.length + 1;
+            if (this.settings.nodeTypes[nextStep] === PORTAL) {
+                throw new Error(`You have reached the end of the scroll, no more tokens can be added.`);
+            }
+            // test if the provided token is valid as the next step in the plan.
+            if (token.tokenType === this.settings.nodeTypes[nextStep]) {
+                this.plan.push(token);
+            } else {
+                throw new Error(`Invalid token [${token.label}] for scroll position ${nextStep}`);
+            }
+        }
+    }
+        
+    // FUNCTIONS
+    function loadLevel(n){
+        logInfo("Loading level " + n + " ... ");
+        currentLevel = level[n];
+        currentScroll = new Scroll(currentLevel.scroll);
+        
+        portalPosition = currentLevel.setup.portalNode;
+        gemPositions = currentLevel.setup.gemNodes.slice();
+        
+        // TODO FIXME : need a way to track used vs. available tokens
+        availableTokens = [];
+            for (var i = 0; i < currentLevel.setup.tokens.length; i++) {
+                for (var j = 0; j < currentLevel.setup.tokens[i].count; j++){
+                    availableTokens.push(currentLevel.setup.tokens[i].token);
+            }
+        }
+        //availableTokens = availableTokens.concat(l.setup.conditionals.slice());
+    }
+        
+    function resetExecutionPlan() {
+        playerPosition = currentLevel.setup.startNode;
+        gems = 0;
+        nextStep = 0;
+    }
+
+    function executePlan() {
+        resetExecutionPlan();
+        
+        // TODO : validate plan... Is each token valid in it's position?
+        
+        for(;nextStep < currentScroll.plan.length;) {
+            try {
+                currentScroll.plan[nextStep].command.exec();
+            } catch (e) {
+                console.log(e);
+            }
+        }
+        
+        // TODO : are all available tokens used? else Incomplete Program
+        // TODO : am I at the PORTAL? else Bug in the program
+        // TODO : did I collect all the gems? else Bug in the program
+    }
+        
+    function execAction(action) {
+        console.log(action);
+        var gotoNode = currentLevel.map.nodeGraph[playerPosition].indexOf(action);
+        if (gotoNode === -1) {
+            throw new Error(`You cannot ${action.label} from ${playerPosition}. :(`);
+        }
+        logSuccess(`You can ${action.label} from ${playerPosition} to ${gotoNode}!`);
+        playerPosition = gotoNode;
+        nextStep++;
+    }       
+        
+        
+    /** Glue Code? **/
+    function run(){
+      execAction(RUN);
+    }
+
+    function jump(){
+      execAction(JUMP);
+    }
+
+    function slide(){
+      execAction(SLIDE);
+    }
+        
+    function getTokenFromCommand(command) {
+      var c = command.replace(/ +/g, "").replace(/\)else/g, ");else");
+      for (var i = 0; i < availableTokens.length; i++) {
+        var token = availableTokens[i];
+        if (token.command === undefined) {
+          continue;
+        }
+        var t = token.command.replace(/ +/g, "");
+        if (t === c) {
+          availableTokens.splice(i,1);
+          updateAssets();
+          return token;
+        }
+      }
+      // if we get here, we have an invalid command
+    }
+
+    //////   DEPRECATED ////////    
+    var currentLevelImage;
     var availableTokens;
 
-    function loadLevel(n) {
+    function loadLevelDEPRECATED(n) {
       logInfo("Loading level " + n + " ... ");
       currentLevel = level[n];
       planPanel.style.backgroundImage = `url('${currentLevel.scroll.image}')`;
@@ -172,7 +279,7 @@
       logInfo("Ready");
     }
 
-    function resetLevel () {
+    function resetLevelDEPRECATED () {
       var l = currentLevel;
       playerPosition = l.setup.startNode;
       portalPosition = l.setup.portalNode;
@@ -223,7 +330,7 @@
       ctx.fillText(`Gems: ${gems}`, gameCanvas.width - 10, 5);
     }
 
-    function getTokenFromCommand(command) {
+    function getTokenFromCommandDEPRECATED(command) {
       var c = command.replace(/ +/g, "").replace(/\)else/g, ");else");
       for (var i = 0; i < availableTokens.length; i++) {
         var token = availableTokens[i];
@@ -241,15 +348,15 @@
     }
 
     /** Action Commands **/
-    function run(){
+    function runDEPRECATED(){
       execAction(RUN);
     }
 
-    function jump(){
+    function jumpDEPRECATED(){
       execAction(JUMP);
     }
 
-    function slide(){
+    function slideDEPRECATED(){
       execAction(SLIDE);
     }
 
@@ -286,7 +393,7 @@
       playerPosition = gotoNode;
     }
 
-    var execAction = execActionDEPRECATED;
+//    var execAction = execActionDEPRECATED;
     function goto(s){
       currentStep = s-1;
     }
@@ -396,8 +503,8 @@
       logStatus(msg, "success");
     }
     function logStatus(msg, c){
-      statusBar.className = c;
-      statusBar.innerText = msg;
+//      statusBar.className = c;
+//      statusBar.innerText = msg;
       console.error(`${c}: ${msg}`);
     }
 
@@ -411,14 +518,12 @@
     const gameCanvas = document.getElementById("game-canvas");
     const ctx = gameCanvas.getContext("2d");
     var gameUI;
-    var gameAPI;
     function main(){
-      gameAPI = new GameAPI();
-      gameUI = new GameMasterUI(gameCanvas, "orange");
-      scaleCanvas(gameCanvas);
-      //console.log("Let the games begin!");
-      //loadLevel(3);
-      window.addEventListener('resize', () => scaleCanvas(gameCanvas), false);
+      // gameUI = new GameMasterUI(gameCanvas, "orange");
+      // scaleCanvas(gameCanvas);
+      // console.log("Let the games begin!");
+      // loadLevel(3);
+      // window.addEventListener('resize', () => scaleCanvas(gameCanvas), false);
       // window.addEventListener('keydown', onKeyDown);
     };
     window.addEventListener('load', main, false);

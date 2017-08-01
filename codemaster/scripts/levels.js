@@ -1,17 +1,17 @@
 /* ========= */
 /* CONSTANTS */
 /* ========= */
-const PLAYER = {name: "PLAYER"};
-const PORTAL = {name: "PORTAL"};
-const PURPLE = {name: "PURPLE_TROLL"};
-const ORANGE = {name: "ORANGE_TROLL"};
+const PLAYER = {label: "PLAYER"};
+const PORTAL = {label: "PORTAL"};
+const PURPLE = {label: "PURPLE_TROLL"};
+const ORANGE = {label: "ORANGE_TROLL"};
 
-const ACTION = {name: "ACTION_TOKEN"};
-const CONDITIONAL = {name: "CONDITIONAL_TOKEN"};
+const ACTION = {label: "ACTION_TOKEN"};
+const CONDITIONAL = {label: "CONDITIONAL_TOKEN"};
 
-const RUN = { command: "run()", tokenType: ACTION, tokenIcon: "images/token_run_32.png", className: "run"};
-const SLIDE = { command: "slide()", tokenType: ACTION, tokenIcon: "images/token_slide_32.png", className: "slide"};
-const JUMP = { command: "jump()", tokenType: ACTION, tokenIcon: "images/token_jump_32.png", className: "jump"};
+const RUN = { label: "RUN", command: {key: "execCommand(RUN)", exec: () => run()}, tokenType: ACTION, tokenIcon: "images/token_run_32.png", className: "run"};
+const SLIDE = { label: "SLIDE", command:  {key: "execCommand(SLIDE)", exec: () => slide()}, tokenType: ACTION, tokenIcon: "images/token_slide_32.png", className: "slide"};
+const JUMP = { label: "JUMP", command:  {key: "execCommand(JUMP)", exec: () => jump()}, tokenType: ACTION, tokenIcon: "images/token_jump_32.png", className: "jump"};
 
 // const COMMAND_TOKENS = [RUN, SLIDE, JUMP];
 
