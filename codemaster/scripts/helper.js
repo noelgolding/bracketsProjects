@@ -2,6 +2,21 @@
 const TOP_LEFT = 0;
 const CENTER = 1;
 
+function scaleCanvas(canvas) {
+  var aspect_ratio = canvas.width/canvas.height;
+  var win_width = window.innerWidth;
+  var win_height = window.innerHeight;
+  var win_ratio = win_width/win_height;
+
+  if (win_ratio > aspect_ratio) {
+     canvas.style.width = (canvas.width * win_height/canvas.height)+'px';
+     canvas.style.height = win_height+'px';
+  } else {
+     canvas.style.width = win_width+'px';
+     canvas.style.height = (canvas.height * win_width/canvas.width)+'px';
+  }
+}
+
 function loadImage(onLoadHandler){
   var img = new Image();
   img.addEventListener("load", onLoadHandler);
