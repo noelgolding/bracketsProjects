@@ -129,129 +129,200 @@
 
 
 
-    
+
 
     </script>
     <script src="scripts/helper.js"></script>
     <script src="scripts/levels.js"></script>
     <script>
     /** CODE MASTER JS-API **/
-    // GLOBALS
-    var nextStep;
-    var currentScroll;
-    var currentLevel;
-    var playerPosition;
-    var portalPosition;
-    var gemPositions;
-    var gems;
-    
     // CLASSES
     function Scroll(settings){
         this.settings = settings;
         this.plan = [];
-        
+
         this.append = function(token) {
-            var nextStep = this.plan.length + 1;
-            if (this.settings.nodeTypes[nextStep] === PORTAL) {
-                throw new Error(`You have reached the end of the scroll, no more tokens can be added.`);
-            }
-            // test if the provided token is valid as the next step in the plan.
-            if (token.tokenType === this.settings.nodeTypes[nextStep]) {
-                this.plan.push(token);
-            } else {
-                throw new Error(`Invalid token [${token.label}] for scroll position ${nextStep}`);
-            }
-        }
-    }
-        
-    // FUNCTIONS
-    function loadLevel(n){
-        logInfo("Loading level " + n + " ... ");
-        currentLevel = level[n];
-        currentScroll = new Scroll(currentLevel.scroll);
-        
-        portalPosition = currentLevel.setup.portalNode;
-        gemPositions = currentLevel.setup.gemNodes.slice();
-        
-        // TODO FIXME : need a way to track used vs. available tokens
-        availableTokens = [];
-            for (var i = 0; i < currentLevel.setup.tokens.length; i++) {
-                for (var j = 0; j < currentLevel.setup.tokens[i].count; j++){
-                    availableTokens.push(currentLevel.setup.tokens[i].token);
-            }
-        }
-        //availableTokens = availableTokens.concat(l.setup.conditionals.slice());
-    }
-        
-    function resetExecutionPlan() {
-        playerPosition = currentLevel.setup.startNode;
-        gems = 0;
-        nextStep = 0;
-    }
-
-    function executePlan() {
-        resetExecutionPlan();
-        
-        // TODO : validate plan... Is each token valid in it's position?
-        
-        for(;nextStep < currentScroll.plan.length;) {
             try {
-                currentScroll.plan[nextStep].command.exec();
+              this.validateTokenAtPosition(token, this.plan.length + 1, (token) => this.plan.push(token));
             } catch (e) {
-                console.log(e);
+              console.error(e);
+              throw Error(`Failed to add ${token.label} token to the scroll.`);
             }
         }
-        
-        // TODO : are all available tokens used? else Incomplete Program
-        // TODO : am I at the PORTAL? else Bug in the program
-        // TODO : did I collect all the gems? else Bug in the program
-    }
-        
-    function execAction(action) {
-        console.log(action);
-        var gotoNode = currentLevel.map.nodeGraph[playerPosition].indexOf(action);
-        if (gotoNode === -1) {
-            throw new Error(`You cannot ${action.label} from ${playerPosition}. :(`);
+
+        this.validatePlan = function() {
+          this.plan.forEach((t,i) => {
+            this.validateTokenAtPosition(t, i+1);
+          });
+          return true;
         }
-        logSuccess(`You can ${action.label} from ${playerPosition} to ${gotoNode}!`);
-        playerPosition = gotoNode;
-        nextStep++;
-    }       
-        
-        
-    /** Glue Code? **/
-    function run(){
-      execAction(RUN);
+
+        this.validateTokenAtPosition = function(token, position, callBack){
+          console.log("token", token, "position", position, "callback", callBack);
+          if (this.settings.nodeTypes[position] === PORTAL) {
+              throw new Error(`You have reached the end of the scroll, no more tokens can be added.`);
+          }
+          if (token.tokenType === this.settings.nodeTypes[position]) {
+              if (callBack) {
+                callBack(token, position);
+              }
+          } else {
+              throw new Error(`Invalid token [${token.label}] for scroll position ${position}`);
+          }
+        }
     }
 
-    function jump(){
-      execAction(JUMP);
-    }
+    function GameMasterAPI(){
+      let nextStep;
+      let currentScroll;
+      let currentLevel;
+      let playerPosition;
+      let portalPosition;
+      let gemPositions;
+      let gems;
+      let availableTokens;
 
-    function slide(){
-      execAction(SLIDE);
-    }
-        
-    function getTokenFromCommand(command) {
-      var c = command.replace(/ +/g, "").replace(/\)else/g, ");else");
-      for (var i = 0; i < availableTokens.length; i++) {
-        var token = availableTokens[i];
-        if (token.command === undefined) {
-          continue;
+      Object.defineProperties( this,
+        {
+          "gems": {
+            "get": function() { return gems; }
+          },
+          "troll": {
+            "get": function() { return currentLevel.map.trolls[playerPosition]; /* TODO if playerPosition == a position with a TROLL return the TROLL */ }
+          }
         }
-        var t = token.command.replace(/ +/g, "");
-        if (t === c) {
-          availableTokens.splice(i,1);
-          updateAssets();
-          return token;
+      );
+
+      this.loadLevel = function(n){
+          logInfo("Loading level " + n + " ... ");
+          currentLevel = level[n];
+          currentScroll = new Scroll(currentLevel.scroll);
+
+          portalPosition = currentLevel.setup.portalNode;
+          gemPositions = currentLevel.setup.gemNodes.slice();
+
+          // TODO FIXME : need a better way to track used vs. available tokens
+          availableTokens = [];
+              for (let i = 0; i < currentLevel.setup.tokens.length; i++) {
+                  for (let j = 0; j < currentLevel.setup.tokens[i].count; j++){
+                      availableTokens.push(currentLevel.setup.tokens[i].token);
+              }
+          }
+          //availableTokens = availableTokens.concat(l.setup.conditionals.slice());
+
+          resetExecutionPlan();
+      }
+
+      function resetExecutionPlan() {
+          playerPosition = currentLevel.setup.startNode;
+          gems = 0;
+          nextStep = 0;
+      }
+
+      // TODO : implement undo - step, addToken
+      // TODO : implement/expose reset
+      // TODO : implement clear
+
+      this.executeNextStep = function() {
+        console.error("NextStep:", nextStep);
+        if (nextStep < currentScroll.plan.length) {
+          console.error("execCommand");
+          eval(currentScroll.plan[nextStep].command.key);
+        } else {
+          console.error("check Did Win?");
+          didWin();
         }
       }
-      // if we get here, we have an invalid command
+
+      let maxSteps = 99;
+      this.executePlan = function () {
+        resetExecutionPlan();
+        if (currentScroll.validatePlan()) {
+          let stepsTaken = 0;
+          while(nextStep < currentScroll.plan.length) {
+              if (stepsTaken++ > maxSteps) {
+                throw new Error("Too many steps.");
+              }
+              this.executeNextStep();
+          }
+          this.executeNextStep(); // last step should be to the portal
+        }
+      }
+
+      function didWin(){
+        if (nextStep >= currentScroll.plan.length) {
+          if(availableTokens.length > 0){
+            throw new Error("You have an incomplete program.");
+          }
+          if (playerPosition !== portalPosition) {
+            throw new Error("You need to end at the portal.");
+          }
+          if (gems !== gemPositions.length) {
+            throw new Error("You need to collect all the gems.");
+          }
+          // if you get here you have won!
+          console.error("You did it!");
+          return true;
+        }
+        return false;
+      }
+
+      function execCommand(action) {
+          console.log(action);
+
+          var gotoNode = currentLevel.map.nodeGraph[playerPosition].indexOf(action);
+          if (gotoNode === -1) {
+              throw new Error(`You cannot ${action.label} from ${playerPosition}. :(`);
+          }
+          logSuccess(`You can ${action.label} from ${playerPosition} to ${gotoNode}!`);
+          playerPosition = gotoNode;
+          nextStep++;
+      }
+
+
+      /** Glue Code? **/
+      // function run(){
+      //   execAction(RUN);
+      // }
+      //
+      // function jump(){
+      //   execAction(JUMP);
+      // }
+      //
+      // function slide(){
+      //   execAction(SLIDE);
+      // }
+
+      this.addToken = function (command) {
+        var c = command.replace(/ +/g, "").replace(/\)else/g, ");else").toLowerCase();
+        console.log("command to locate:", command);
+        for (var i = 0; i < availableTokens.length; i++) {
+          var token = availableTokens[i];
+          console.log("available token: ", i, token.command);
+          if (token.command === undefined) {
+            continue;
+          }
+          var t = token.command.key.replace(/ +/g, "").toLowerCase();
+          console.log("token command: ", token.command.key, t, t === c);
+
+          if (t === c) {
+            currentScroll.append(token);
+            availableTokens.splice(i,1)
+            // updateAssets();
+            return token;
+          }
+        }
+        throw new Error(`No token available for the command: ${command}`);
+      }
+
+
     }
 
-    //////   DEPRECATED ////////    
+
+
+    // FUNCTIONS
+    //////   DEPRECATED ////////
     var currentLevelImage;
-    var availableTokens;
 
     function loadLevelDEPRECATED(n) {
       logInfo("Loading level " + n + " ... ");
@@ -518,7 +589,10 @@
     const gameCanvas = document.getElementById("game-canvas");
     const ctx = gameCanvas.getContext("2d");
     var gameUI;
+    var gameAPI;
     function main(){
+      gameAPI = new GameMasterAPI();
+      gameAPI.loadLevel(1);
       // gameUI = new GameMasterUI(gameCanvas, "orange");
       // scaleCanvas(gameCanvas);
       // console.log("Let the games begin!");
