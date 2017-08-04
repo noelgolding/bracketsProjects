@@ -139,11 +139,11 @@
     // CLASSES
     function Scroll(settings){
         this.settings = settings;
-        this.plan = [];
+        this.plan = Array(settings.nodeTypes.length-2).fill(null);
 
-        this.append = function(token) {
+        this.addToken = function(token, position) {
             try {
-              this.validateTokenAtPosition(token, this.plan.length + 1, (token) => this.plan.push(token));
+              this.validateTokenAtPosition(token, position+1, (token) => this.plan[position] = token);
             } catch (e) {
               console.error(e);
               throw Error(`Failed to add ${token.label} token to the scroll.`);
@@ -167,7 +167,7 @@
                 callBack(token, position);
               }
           } else {
-              throw new Error(`Invalid token [${token.label}] for scroll position ${position}`);
+              throw new Error(`Invalid token [${token.label}] for scroll position ${position}.  Expected ${this.settings.nodeTypes[position].label} but was ${token.tokenType.label}`);
           }
         }
     }
@@ -180,7 +180,7 @@
       let portalPosition;
       let gemPositions;
       let gems;
-      let availableTokens;
+      // let availableTokens;
 
       Object.defineProperties( this,
         {
@@ -189,6 +189,27 @@
           },
           "troll": {
             "get": function() { return currentLevel.map.trolls[playerPosition]; /* TODO if playerPosition == a position with a TROLL return the TROLL */ }
+          },
+          "scroll": {
+            "get" : function() { return [...currentScroll.settings.nodeTypes] }
+          },
+          "program": {
+            "get" : function() { return [...currentScroll.plan] }
+          },
+          "availableTokens": {
+            "get": function() {
+              // TODO FIXME : need a better way to track used vs. available tokens
+              let availableTokens = [];
+              for (let i = 0; i < currentLevel.setup.tokens.length; i++) {
+                let token = currentLevel.setup.tokens[i].token
+                let avail = currentLevel.setup.tokens[i].count - this.program.filter((t) => t === token).length
+                for (let j = 0; j < avail; j++){
+                  availableTokens.push(token);
+                }
+              }
+              //availableTokens = availableTokens.concat(l.setup.conditionals.slice());
+              return availableTokens;
+            }
           }
         }
       );
@@ -201,15 +222,6 @@
           portalPosition = currentLevel.setup.portalNode;
           gemPositions = currentLevel.setup.gemNodes.slice();
 
-          // TODO FIXME : need a better way to track used vs. available tokens
-          availableTokens = [];
-              for (let i = 0; i < currentLevel.setup.tokens.length; i++) {
-                  for (let j = 0; j < currentLevel.setup.tokens[i].count; j++){
-                      availableTokens.push(currentLevel.setup.tokens[i].token);
-              }
-          }
-          //availableTokens = availableTokens.concat(l.setup.conditionals.slice());
-
           resetExecutionPlan();
       }
 
@@ -220,8 +232,9 @@
       }
 
       // TODO : implement undo - step, addToken
+      // TODO : implement removeToken(index)
       // TODO : implement/expose reset
-      // TODO : implement clear
+      // TODO : implement clear: return tokens to available pool, reset execution path.
 
       this.executeNextStep = function() {
         console.error("NextStep:", nextStep);
@@ -279,43 +292,34 @@
           nextStep++;
       }
 
+      this.addToken = function (command, position=undefined) {
+        // if position is not defined, find the next available slot in the program
+        if (position === undefined) {
+          position = this.program.indexOf(null);
+        }
+        if (position === -1) {
+          throw new Error("You're program does not have space for any more commands.");
+        }
 
-      /** Glue Code? **/
-      // function run(){
-      //   execAction(RUN);
-      // }
-      //
-      // function jump(){
-      //   execAction(JUMP);
-      // }
-      //
-      // function slide(){
-      //   execAction(SLIDE);
-      // }
+        // TODO : need to removeTokenAtPosition(position);
 
-      this.addToken = function (command) {
-        var c = command.replace(/ +/g, "").replace(/\)else/g, ");else").toLowerCase();
-        console.log("command to locate:", command);
-        for (var i = 0; i < availableTokens.length; i++) {
-          var token = availableTokens[i];
-          console.log("available token: ", i, token.command);
+        let c = command.replace(/ +/g, "").replace(/\)else/g, ");else").toLowerCase();
+        //console.log("command to locate:", command);
+        for (let token of this.availableTokens) {
+          //console.log("available token: ", token.command);
           if (token.command === undefined) {
             continue;
           }
-          var t = token.command.key.replace(/ +/g, "").toLowerCase();
-          console.log("token command: ", token.command.key, t, t === c);
+          let t = token.command.key.replace(/ +/g, "").toLowerCase();
+          //console.log("token command: ", token.command.key, t, t === c);
 
           if (t === c) {
-            currentScroll.append(token);
-            availableTokens.splice(i,1)
-            // updateAssets();
+            currentScroll.addToken(token, position);
             return token;
           }
         }
         throw new Error(`No token available for the command: ${command}`);
       }
-
-
     }
 
 
