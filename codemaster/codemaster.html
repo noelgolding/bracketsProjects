@@ -180,10 +180,21 @@
       let portalPosition;
       let gemPositions;
       let gems;
-      // let availableTokens;
 
       Object.defineProperties( this,
         {
+          "level": {
+            "get": function() { return currentLevel.level; }
+          },
+          "playerPosition": {
+            "get": function() { return playerPosition; }
+          },
+          "portalPosition": {
+            "get": function() { return portalPosition; }
+          },
+          "gemPositions": {
+            "get": function() { return gemPositions; }
+          },
           "gems": {
             "get": function() { return gems; }
           },
@@ -264,7 +275,7 @@
 
       function didWin(){
         if (nextStep >= currentScroll.plan.length) {
-          if(availableTokens.length > 0){
+          if(this.availableTokens.length > 0){
             throw new Error("You have an incomplete program.");
           }
           if (playerPosition !== portalPosition) {
