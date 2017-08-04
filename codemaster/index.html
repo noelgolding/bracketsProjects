@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" src="css/codemaster.css">
+    <title>Code Master - (the video game)</title>
+  </head>
+  <body>
+    <div class="container">
+      <div id="menubar"></div>
+
+      <div id="gamePlayArea">
+        <div id="leftPanel">
+          <div id="game-console"></div>
+        </div>
+
+
+        <div id="rightPanel">
+          <div id="availableTokens"></div>
+        </div>
+      </div>
+
+      <div id="statusBar"></div>
+    </div>
+
+    <!-- script src="scripts/helper.js"></script -->
+    <script src="scripts/levels.js"></script>
+    <script src="scripts/CodeMasterAPI.js"></script>
+
+    <!-- <script scr="scripts/libs/vue.js"></script> -->
+    <!-- <script src="https://unpkg.com/vue"></script>
+    <script src="scripts/libs/react-0.14.8.min.js"></script>
+    <script src="scripts/libs/react-dom-0.14.8.min.js"></script>
+    <script src="scripts/CodeMasterUI.js"></script> -->
+
+
+    <!-- <script src="scripts/CodeMasterRedux.js"></script> -->
+
+    <script>
+    var gameAPI;
+    // var store = createCodeMasterReduxStore();
+    function main(){
+      const availTokensUI = document.getElementById('availableTokens');
+      const programCodeUI = document.getElementById('game-console');
+
+      programCodeUI.addEventListener('keyup', handleManualCodeInput);
+
+      gameAPI = new GameMasterAPI();
+      gameAPI.subscribe(LOAD_LEVEL, initLevel);
+      gameAPI.subscribe(PLACE_TOKEN, renderAvailableTokens);
+      gameAPI.subscribe(PLACE_TOKEN, renderProgramCode);
+      gameAPI.subscribe(REMOVE_TOKEN, renderAvailableTokens);
+      gameAPI.subscribe(REMOVE_TOKEN, renderProgramCode);
+
+
+      gameAPI.loadLevel(1);
+      gameLoop();
+
+      function initLevel() {
+        renderAvailableTokens();
+        renderProgramCode();
+      }
+
+      function renderAvailableTokens(){
+        availTokensUI.innerHTML = "";
+        let ul = document.createElement('ul');
+        gameAPI.availableTokens.forEach((t) => {
+          let li = document.createElement('li');
+          li.className = t.className;
+          li.ondblclick = () => {gameAPI.placeToken(t.command.key)};
+          li.innerText = t.command.key.replace(/;/g,"");
+          ul.appendChild(li)
+        });
+        availTokensUI.appendChild(ul);
+      }
+
+      function renderProgramCode(){
+        programCodeUI.innerHTML = "";
+        let ol = document.createElement('ol');
+        gameAPI.program.forEach((i, x) => {
+          let li = document.createElement('li');
+          li.innerHTML = `<div contenteditable="true" tabindex="x" onKeyUp="(e) => {console.log(e)}">${(i !== null) ? i.command.key.replace(/;/g, "") : ""}</div>`;
+          ol.appendChild(li)
+        });
+        availTokensUI.appendChild(ol);
+      }
+
+      function handleManualCodeInput(e){
+        if(e.code === "Enter") {
+          // trigger placeTokens.
+        }
+      }
+
+
+
+
+
+
+
+      function update(){
+        // What to do here?
+        // handle input.
+      }
+
+      function render(){
+        // update ui components of state change?
+        // renderAvailableTokens();
+      }
+
+      function gameLoop(){
+        update();
+        render();
+        window.requestAnimationFrame(gameLoop);
+      }
+      // scaleCanvas(gameCanvas);
+      // console.log("Let the games begin!");
+      // loadLevel(3);
+      // window.addEventListener('resize', () => scaleCanvas(gameCanvas), false);
+      // window.addEventListener('keydown', onKeyDown);
+    };
+    window.addEventListener('load', main, false);
+    </script>
+
+
+  </body>
+</html>
