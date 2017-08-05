@@ -2,6 +2,22 @@
 const TOP_LEFT = 0;
 const CENTER = 1;
 
+
+function sqr(a) {
+  return a * a;
+}
+
+function findYgivenXHKA(x, h, k, a){
+  let y = a * sqr(x - h) - k;
+  return y;
+}
+
+function findAgivenXYHK(x, y, h, k){
+  let a = (y + k) / sqr(x-h);
+  return a;
+}
+
+
 function scaleCanvas(canvas) {
   var aspect_ratio = canvas.width/canvas.height;
   var win_width = window.innerWidth;
