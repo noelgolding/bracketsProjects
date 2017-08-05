@@ -74,6 +74,11 @@
                 overflow:scroll;
             }
 
+            ::placeholder {
+              font-size: 65%;
+              color: #d0d0d0;
+            }
+
         </style>
 
 
@@ -289,7 +294,7 @@ window.onload = function () {
         ul.appendChild(li);
         for (var c = 0; c < colsEl.value; c++){
           var li = document.createElement("li");
-          li.innerHTML = "<input class='header' readonly='true' type='text' value='" + (c+1) + "' />";
+          li.innerHTML = "<input class='header' readonly='true' type='text' value='" + (c) + "' />";
           ul.appendChild(li);
         }
         pixelartGrid.appendChild(ul);
@@ -297,7 +302,7 @@ window.onload = function () {
         for (var y = 0; y < rowsEl.value; y++){
             var ul = document.createElement("ul");
             var li = document.createElement("li");
-            li.innerHTML = "<input class='header' readonly='true' type='text' value='" + (y+1) + "' />";
+            li.innerHTML = "<input class='header' readonly='true' type='text' value='" + (y) + "' />";
             ul.appendChild(li);
             pixelartGrid.appendChild(ul);
             for (var x = 0; x < colsEl.value; x++){
