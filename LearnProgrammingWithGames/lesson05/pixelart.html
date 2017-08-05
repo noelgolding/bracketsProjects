@@ -16,6 +16,7 @@
 
                 margin: 0;
                 overflow: hidden;
+                background-color: #f6f6f6;
             }
 
             .container {
@@ -60,6 +61,11 @@
 
             li.colorKey {
                 padding: 0 10px 0 0;
+            }
+
+            li input.header {
+              background-color: #000;
+              color: #fff;
             }
 
             .grid {
@@ -136,8 +142,14 @@
 <!-- ***************************************** -->
 <!-- ************* SCRIPT ******************** -->
 <!-- ***************************************** -->
+<script src="../common/FileSaver.js"></script>
 <script>
 window.onload = function () {
+    const pixelArtName = document.getElementById('pixelArtName');
+    document.getElementById("SavePixelArtData").addEventListener('click', savePixelArtData);
+    document.getElementById("SavePixelArtImage").addEventListener('click', savePixelArtImage);
+    document.getElementById('LoadPixelArtData').addEventListener('change', loadPixelArt);
+
     const colsEl = document.getElementById('width');
     colsEl.addEventListener('change', onDimensionChange);
 
@@ -174,6 +186,54 @@ window.onload = function () {
 
     var colors = DEFAULT_COLORS.slice();
     var pixels = JSON.parse(JSON.stringify(DEFAULT_PIXELS));
+    var pixelArtData = {
+      name: "",
+      colors: colors,
+      pixels: pixels
+    };
+
+    function loadPixelArt(evt){
+      let file = evt.target.files[0];
+      let name = file.name;
+
+      var reader = new FileReader();
+      reader.onload = (e) => {
+        pixelArtData = JSON.parse(e.target.result);
+        console.log(pixelArtData);
+        pixelArtName.value = name.replace(/\..*$/g, "");
+        colors = pixelArtData.colors;
+        pixels = pixelArtData.pixels;
+        colsEl.value = pixels[0].length;
+        rowsEl.value = pixels.length;
+        colorsEl.value = colors.length;
+        main();
+      }
+      reader.readAsText(file);
+    }
+
+    function savePixelArtData(){
+      let filename = pixelArtName.value || "PrettyPixelArt";
+      console.log("Saving Pixel Art Data!");
+      let pix = pixels.slice(0, parseInt(rowsEl.value));
+      pix = pix.map( r => {
+        return r.slice(0, parseInt(colsEl.value));
+      });
+      pixelArtData = {
+        name : filename,
+        colors : colors.slice(0, parseInt(colorsEl.value)),
+        pixels : pix
+      }
+      pixelArtData = JSON.stringify(pixelArtData);
+      saveAs(new Blob([pixelArtData],{type:"application/json"}), `${filename}.json`);
+    }
+
+    function savePixelArtImage(){
+      let filename = pixelArtName.value || "PrettyPixelArt";
+      console.log("Saving Pixel Art Image!");
+      canvas.toBlob(function(blob) {
+          saveAs(blob, `${filename}.png`);
+      });
+    }
 
     function onColorKeyChange(e){
         console.log("onColorKeyChange", e);
@@ -225,11 +285,11 @@ window.onload = function () {
         // show numbered columns
         var ul = document.createElement("ul");
         var li = document.createElement("li");
-        li.innerHTML = "<input readonly='true' type='text' value='' />";
+        li.innerHTML = "<input class='header' readonly='true' type='text' value='' />";
         ul.appendChild(li);
         for (var c = 0; c < colsEl.value; c++){
           var li = document.createElement("li");
-          li.innerHTML = "<input readonly='true' type='text' value='" + (c+1) + "' />";
+          li.innerHTML = "<input class='header' readonly='true' type='text' value='" + (c+1) + "' />";
           ul.appendChild(li);
         }
         pixelartGrid.appendChild(ul);
@@ -237,7 +297,7 @@ window.onload = function () {
         for (var y = 0; y < rowsEl.value; y++){
             var ul = document.createElement("ul");
             var li = document.createElement("li");
-            li.innerHTML = "<input readonly='true' type='text' value='" + (y+1) + "' />";
+            li.innerHTML = "<input class='header' readonly='true' type='text' value='" + (y+1) + "' />";
             ul.appendChild(li);
             pixelartGrid.appendChild(ul);
             for (var x = 0; x < colsEl.value; x++){
@@ -251,7 +311,9 @@ window.onload = function () {
                 var v = pixels[y][x];
 
                 var li = document.createElement("li");
-                li.innerHTML = "<input type='text' x='" + x + "' y='" + y + "' id=" + id + " value='" + v + "' />"
+                var txt = (v.trim !== "") ? " value='" + v + "'" : "";
+                var xy = `(${x}, ${y})`;
+                li.innerHTML = "<input type='text' x='" + x + "' y='" + y + "' id=" + id + txt + " placeholder='" + xy + "'/>"
                 ul.appendChild(li);
 
                 document.getElementById(id).addEventListener('change', updatePixels);
@@ -302,10 +364,11 @@ window.onload = function () {
     function drawPixel(x, y, c) {
         var color = getColor(c);
         if (!color) {
-            ctx.fillStyle = "white";
-            ctx.fillRect(x*scl, y*scl, scl, scl);
-            ctx.strokeStyle = "black";
-            ctx.strokeRect(x*scl, y*scl, scl, scl);
+          return;
+            // ctx.fillStyle = "white";
+            // ctx.fillRect(x*scl, y*scl, scl, scl);
+            // ctx.strokeStyle = "black";
+            // ctx.strokeRect(x*scl, y*scl, scl, scl);
         }
         ctx.fillStyle = color;
         ctx.fillRect(x*scl, y*scl, scl, scl);
