@@ -1,86 +1,101 @@
 <html>
     <head>
 
-        
-        
-<!-- ***************************************** -->    
-<!-- ************** STYLE ******************** -->    
-<!-- ***************************************** -->    
+
+
+<!-- ***************************************** -->
+<!-- ************** STYLE ******************** -->
+<!-- ***************************************** -->
         <style>
             html, body {
                 height: 100%;
                 width: 100%
             }
-            
+
             body {
-                
+
                 margin: 0;
                 overflow: hidden;
+                background-color: #f6f6f6;
             }
-            
+
             .container {
                 max-width: 100%;
                 height: 100%;
                 padding: 10px 0 0 10px;
 /*                border: 1px solid black;*/
             }
-            
+
             table {
                 margin: 0;
                 padding: 0;
                 height: 100%;
             }
-            
+
             input {
                 text-align: center;
             }
-            
+
             td {
                 vertical-align: top;
                 padding: 10px;
             }
-            
+
             ul {
                 margin: 0;
                 padding: 0;
                 list-style-type: none;
             }
-            
+
             li {
                 display: inline;
                 padding: 0;
                 margin: 0;
                 vertical-align: middle;
             }
-            
+
             li input {
                 width: 30px;
                 height: 30px;
             }
-            
+
             li.colorKey {
                 padding: 0 10px 0 0;
             }
-            
+
             .grid {
                 white-space: nowrap;
                 height: 100%;
                 overflow:scroll;
             }
-            
+
         </style>
-        
-        
+
+
     </head>
     <body>
-        
-        
-        
-<!-- ***************************************** -->    
-<!-- ************** HTML ********************* -->    
-<!-- ***************************************** -->    
+
+
+
+<!-- ***************************************** -->
+<!-- ************** HTML ********************* -->
+<!-- ***************************************** -->
 <div class="container">
     <table>
+        <tr>
+          <td>
+            <form onsubmit="event.preventDefault();">
+              <label for="filename">Name</label>
+              <input type="text" id="filename" name="filename"/>
+              &nbsp;&nbsp;
+              <button id="SaveData" value="Save Data">Save Data</button>
+              &nbsp;&nbsp;
+              <button id="SaveImage" value="Save Image">Save Image</button>
+              &nbsp;&nbsp;
+              <input type="file" id="LoadData" name="LoadData" value="Load Data" accept=".json"/ >
+            </form>
+          </td>
+        </tr>
         <tr>
             <td>
                 <form onsubmit="event.preventDefault();">
@@ -95,7 +110,7 @@
         </tr>
         <tr>
             <td>
-                <ul id="colorKey"></ul> 
+                <ul id="colorKey"></ul>
             </td>
         </tr>
         <tr class="container">
@@ -116,34 +131,103 @@
         </tr>
     </table>
 </div>
-        
-        
-        
-<!-- ***************************************** -->    
-<!-- ************* SCRIPT ******************** -->    
+
+
+
 <!-- ***************************************** -->
+<!-- ************* SCRIPT ******************** -->
+<!-- ***************************************** -->
+<script src="../common/FileSaver.js"></script>
 <script>
 window.onload = function () {
-    const colsEl = document.getElementById('width');
-    colsEl.addEventListener('change', onDimensionChange);
-    
-    const rowsEl = document.getElementById('height');
-    rowsEl.addEventListener('change', onDimensionChange);
+  const colsEl = document.getElementById('width');
+  colsEl.addEventListener('change', onDimensionChange);
 
-    const colorsEl = document.getElementById('colors');
-    colorsEl.addEventListener('change', onColorNumChange);
+  const rowsEl = document.getElementById('height');
+  rowsEl.addEventListener('change', onDimensionChange);
+
+  const colorsEl = document.getElementById('colors');
+  colorsEl.addEventListener('change', onColorNumChange);
+
+  const saveDataBtn = document.getElementById("SaveData");
+  saveDataBtn.addEventListener('click', () => savePixelArt('data'))
+  const saveImageBtn = document.getElementById("SaveImage");
+  saveImageBtn.addEventListener('click', () => savePixelArt('img'))
+
+  const canvas = document.getElementById("pixelartCanvas");
+  const filenameInput = document.getElementById("filename");
+  document.getElementById('LoadData').addEventListener('change', loadPixelArt, false);
+
+  var colors = [];
+  var pixels = [];
+  var pixelArtData = {
+    name: filenameInput.value,
+    colors: colors,
+    pixels: pixels
+  };
+
+  function loadPixelArt(evt){
+    // console.log(evt);
+    let file = evt.target.files[0];
+    let name = file.name;
+    console.log(name);
+    // console.log(file, type);
+
+    var reader = new FileReader();
+
+    // Closure to capture the file information.
+    reader.onload = (e) => {
+      pixelArtData = JSON.parse(e.target.result);
+      console.log(pixelArtData);
+      filenameInput.value = name.replace(/\..*$/g, "");
+      colors = pixelArtData.colors;
+      pixels = pixelArtData.pixels;
+
+      colsEl.value = pixels[0].length;
+      rowsEl.value = pixels.length;
+      colorsEl.value = colors.length;
+
+      main();
+    }
+
+    reader.readAsText(file);
+  }
+
+  function savePixelArt(t){
+    let filename = filenameInput.value || "PrettyPixelArt";
+    // filenameInput.value = filename;
+    if (t === 'img') {
+      console.log("Saving Pixel Art Image!");
+      canvas.toBlob(function(blob) {
+          saveAs(blob, `${filename}.png`);
+      });
+    } else {
+      console.log("Saving Pixel Art Data!");
+      let pix = pixels.slice(0, parseInt(rowsEl.value));
+      pix = pix.map( r => {
+        return r.slice(0, parseInt(colsEl.value));
+      });
+
+      pixelArtData = {
+        name : filename,
+        colors : colors.slice(0, parseInt(colorsEl.value)),
+        pixels : pix
+      }
+      pixelArtData = JSON.stringify(pixelArtData);
+      saveAs(new Blob([pixelArtData],{type:"application/json"}), `${filename}.json`);
+    }
+  }
 
     const colorKey = document.getElementById('colorKey');
     const a = "a".charCodeAt(0);
 
     const pixelartGrid = document.getElementById('pixelartGrid');
 
-    const canvas = document.getElementById("pixelartCanvas");
     const ctx = canvas.getContext("2d");
-    
+
     const scl = 10;
-    
-        
+
+
     const DEFAULT_COLORS = ["#ffffff", "#000000", "#0000ff"];
     const DEFAULT_PIXELS = [
         ["","","","","","","","","",""],
@@ -157,33 +241,33 @@ window.onload = function () {
         ["","","","","","","","","",""],
         ["","","","","","","","","",""],
     ];
-    
-    var colors = DEFAULT_COLORS.slice();
-    var pixels = JSON.parse(JSON.stringify(DEFAULT_PIXELS));
-    
+
+    colors = DEFAULT_COLORS.slice();
+    pixels = JSON.parse(JSON.stringify(DEFAULT_PIXELS));
+
     function onColorKeyChange(e){
         console.log("onColorKeyChange", e);
         var k = parseInt(e.target.attributes.idx.value);
         var v = e.target.value;
-        
+
         event = document.createEvent("HTMLEvents");
         event.initEvent("close", true, true);
-        
+
         colors[k] = v;
         e.target.dispatchEvent(event);
-        updateCanvas(); 
+        updateCanvas();
     }
-    
+
     function onColorNumChange(){
         showColorKey();
-        updateCanvas(); 
+        updateCanvas();
     }
-    
+
     function onDimensionChange(){
         showGrid();
         updateCanvas();
     }
-    
+
     function showColorKey(){
         console.log("showColorKey");
         colorKey.innerHTML = "";
@@ -200,11 +284,11 @@ window.onload = function () {
             li.innerHTML =  String.fromCharCode(a+i).toUpperCase() + ": <input  idx='" + i + "' id='" + id + "' type='color' value='" + c + "'/>";
             li.className = "colorKey"
             colorKey.appendChild(li);
-    
+
             document.getElementById(id).addEventListener('change', onColorKeyChange);
         }
     }
-    
+
     function showGrid(){
         console.log("showGrid");
         pixelartGrid.innerHTML = "";
@@ -220,17 +304,17 @@ window.onload = function () {
                 }
                 var id = "pixel_" + x + "_" + y;
                 var v = pixels[y][x];
-                
+
                 var li = document.createElement("li");
                 li.innerHTML = "<input type='text' x='" + x + "' y='" + y + "' id=" + id + " value='" + v + "' />"
                 ul.appendChild(li);
-                
+
                 document.getElementById(id).addEventListener('change', updatePixels);
             }
         }
-        
+
     }
-    
+
     function updatePixels(e){
         console.log("updatePixels");
         var el = document.getElementById(e.target.id);
@@ -238,15 +322,15 @@ window.onload = function () {
         var y = el.attributes.y.value;
         var v = el.value.trim().split(" ").join("").toLocaleLowerCase();
         pixels[y][x] = v;
-        
+
         updateCanvas();
     }
-    
+
     function updateCanvas(){
         console.log("update canvas");
         canvas.width = colsEl.value * scl;
         canvas.height = rowsEl.value * scl;
-        
+
          for (var y = 0; y < rowsEl.value; y++){
             for (var x = 0; x < colsEl.value; x++){
                 var cs = (pixels[y] && pixels[y][x]) ? pixels[y][x].split("") : [""];
@@ -261,7 +345,7 @@ window.onload = function () {
             }
         }
     }
-    
+
     function getColor(c) {
         var i = c.charCodeAt(0) - a;
         if (isNaN(i) || c > colorsEl.value - 1) {
@@ -269,10 +353,11 @@ window.onload = function () {
         }
         return colors[i];
     }
-    
+
     function drawPixel(x, y, c) {
         var color = getColor(c);
         if (!color) {
+            return;
             ctx.fillStyle = "white";
             ctx.fillRect(x*scl, y*scl, scl, scl);
             ctx.strokeStyle = "black";
@@ -283,19 +368,19 @@ window.onload = function () {
         ctx.strokeStyle = color;
         ctx.strokeRect(x*scl, y*scl, scl, scl);
     }
-    
+
     const triangle = {
         "/" : [[0,0,0,scl,scl,0],[scl,0,scl,scl,0,scl]],
         "\\": [[0,0,0,scl,scl,scl],[scl,scl,scl,0,0,0]],
     };
-    
+
     function drawTriangles(x, y, cs) {
         var slash = cs[1];
-        
+
         drawTriangle(x, y, cs[0], triangle[slash][0])
         drawTriangle(x, y, cs[2], triangle[slash][1])
     }
-    
+
     function drawTriangle(x, y, c, points){
         var color = getColor(c);
         if (!color) {
@@ -304,6 +389,7 @@ window.onload = function () {
             ctx.strokeStyle = "black";
             ctx.strokeRect(x*scl, y*scl, scl, scl);
         }
+        ctx.strokeStyle = color;
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.moveTo(x*scl + points[0], y*scl + points[1]);
@@ -312,19 +398,26 @@ window.onload = function () {
         ctx.lineTo(x*scl + points[0], y*scl + points[1]);
         ctx.closePath();
         ctx.fill();
+        ctx.stroke();
     }
-    
+
     function main() {
+        console.log('main');
         onColorNumChange();
         onDimensionChange();
     }
-    
-    main();
 
+    main();
+    window.addEventListener('keydown', (e) => {
+      if (e.code === "KeyS" && (e.metaKey === true || e.ctrlKey === true)) {
+        savePixelArt('data');
+        e.preventDefault();
+      }
+    });
 }
 </script>
 
-        
-    
+
+
     </body>
 </html>
