@@ -418,6 +418,13 @@ window.onload = function () {
 
     main();
 
+    window.addEventListener('keydown', (e) => {
+      if (e.code === "KeyS" && (e.ctrlKey === true || e.metaKey === true)) {
+        savePixelArtData();
+        e.preventDefault();
+      }
+    });
+
 }
 </script>
 
