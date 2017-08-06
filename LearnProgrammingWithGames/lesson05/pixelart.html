@@ -397,8 +397,8 @@ window.onload = function () {
     }
 
     const triangle = {
-        "/" : [[0,0,0,scl,scl,0],[scl,0,scl,scl,0,scl]],
-        "\\": [[0,0,0,scl,scl,scl],[scl,scl,scl,0,0,0]],
+        "/" : [[0,0,0,1,1,0],[1,0,1,1,0,1]],
+        "\\": [[0,0,0,1,1,1],[1,1,1,0,0,0]],
     };
 
     function drawTriangles(x, y, cs) {
@@ -411,17 +411,18 @@ window.onload = function () {
     function drawTriangle(x, y, c, points){
         var color = getColor(c);
         if (!color) {
-            ctx.fillStyle = "white";
-            ctx.fillRect(x*scl, y*scl, scl, scl);
-            ctx.strokeStyle = "black";
-            ctx.strokeRect(x*scl, y*scl, scl, scl);
+            return;
+            // ctx.fillStyle = "white";
+            // ctx.fillRect(x*scl, y*scl, scl, scl);
+            // ctx.strokeStyle = "black";
+            // ctx.strokeRect(x*scl, y*scl, scl, scl);
         }
         ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.moveTo(x*scl + points[0], y*scl + points[1]);
-        ctx.lineTo(x*scl + points[2], y*scl + points[3]);
-        ctx.lineTo(x*scl + points[4], y*scl + points[5]);
-        ctx.lineTo(x*scl + points[0], y*scl + points[1]);
+        ctx.moveTo(x*scl + points[0]*scl, y*scl + points[1]*scl);
+        ctx.lineTo(x*scl + points[2]*scl, y*scl + points[3]*scl);
+        ctx.lineTo(x*scl + points[4]*scl, y*scl + points[5]*scl);
+        ctx.lineTo(x*scl + points[0]*scl, y*scl + points[1]*scl);
         ctx.closePath();
         ctx.fill();
     }
