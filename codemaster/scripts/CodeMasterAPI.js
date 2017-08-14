@@ -42,9 +42,20 @@ function Scroll(settings){
       }
 
       if (token.tokenType === this.settings.nodeTypes[position]) {
-          if (callBack) {
-            callBack(token, position);
-          }
+        if (token.tokenType === CONDITIONAL) {
+          let T = this.settings.nodeGraph[position].indexOf(1);
+          let F = this.settings.nodeGraph[position].indexOf(2);
+          token.command.exec = () => nextStep (token.command.test) ? T : F;
+
+          T = (this.settings.nodeTypes[T] === PORTAL) ? 'usePortal()' : `gotoLine( ${T} )`;
+          F = (this.settings.nodeTypes[F] === PORTAL) ? 'usePortal()' : `gotoLine( ${F} )`;
+
+          //token.label += ` goto(${T}) : goto(${F})`;
+          token.command.key = token.command.key.replace(/\?/g,` ${T}; else ${F}`);
+        }
+        if (callBack) {
+          callBack(token, position);
+        }
       } else {
           throw new Error(`Invalid token [${token.label}] for scroll position ${position}.  Expected ${this.settings.nodeTypes[position].label} but was ${token.tokenType.label}`);
       }
@@ -62,32 +73,38 @@ function GameMasterAPI(){
 
   Object.defineProperties( this,
     {
+      "CurrentLevel": {
+        "get": () => {return currentLevel;}
+      },
       "level": {
-        "get": function() { return currentLevel.level; }
+        "get": () => { return currentLevel.level; }
+      },
+      "mapImage": {
+        "get": () => { return currentLevel.map.image }
       },
       "playerPosition": {
-        "get": function() { return playerPosition; }
+        "get": () => { return playerPosition; }
       },
       "portalPosition": {
-        "get": function() { return portalPosition; }
+        "get": () => { return portalPosition; }
       },
       "gemPositions": {
-        "get": function() { return gemPositions; }
+        "get": () => { return gemPositions; }
       },
-      "gems": {
-        "get": function() { return gems; }
+      "gemsCollected": {
+        "get": () => { return gems; }
       },
       "troll": {
-        "get": function() { return currentLevel.map.trolls[playerPosition]; /* TODO if playerPosition == a position with a TROLL return the TROLL */ }
+        "get": () => { return currentLevel.map.trolls[playerPosition] }
       },
       "scroll": {
-        "get" : function() { return [...currentScroll.settings.nodeTypes] }
+        "get" : () => { return (currentScroll.settings.nodeLayout) ? [...currentScroll.settings.nodeLayout] : [[...currentScroll.settings.nodeTypes]] }
       },
       "program": {
-        "get" : function() { return [...currentScroll.plan] }
+        "get" : () => { return [...currentScroll.plan] }
       },
       "availableTokens": {
-        "get": function() {
+        "get": () => {
           // TODO FIXME : need a better way to track used vs. available tokens
           let availableTokens = [];
           for (let i = 0; i < currentLevel.setup.tokens.length; i++) {
@@ -97,12 +114,33 @@ function GameMasterAPI(){
               availableTokens.push(token);
             }
           }
+
+          let filteredProgram = this.program.filter(t => t && t.tokenType === CONDITIONAL);
+          currentLevel.setup.conditionals.forEach(c => {
+            let token = createConditionalToken(c);
+            let available = true;
+            for (let i = 0; i < filteredProgram.length; i++) {
+              if (filteredProgram[i].label === token.label) {
+                available = false;
+                break;
+              }
+            }
+            if (available) {
+              availableTokens.push(token);
+            }
+
+          });
           //availableTokens = availableTokens.concat(l.setup.conditionals.slice());
           return availableTokens;
         }
       }
     }
   );
+
+  this.removeTokenAtPosition = function(position) {
+    currentScroll.removeTokenAtPosition(position);
+    this.dispatch(REMOVE_TOKEN);
+  }
 
   this.subscribe = function(action, handler){
     console.log("subscribe", action, handler);
@@ -133,15 +171,16 @@ function GameMasterAPI(){
       currentScroll = new Scroll(currentLevel.scroll);
 
       portalPosition = currentLevel.setup.portalNode;
-      gemPositions = currentLevel.setup.gemNodes.slice();
 
-      resetExecutionPlan();
+
+      this.resetExecutionPlan();
 
       this.dispatch(LOAD_LEVEL);
   }
 
-  function resetExecutionPlan() {
+  this.resetExecutionPlan = function() {
       playerPosition = currentLevel.setup.startNode;
+      gemPositions = currentLevel.setup.gemNodes.slice();
       gems = 0;
       nextStep = 0;
   }
@@ -152,10 +191,28 @@ function GameMasterAPI(){
   // TODO : implement clear: return tokens to available pool, reset execution path.
 
   this.executeNextStep = function() {
+    let gemsCollected = this.gemsCollected;
+    let ORANGE_TROLL = this.troll;
+    let PURPLE_TROLL = this.troll;
+    function usePortal() {
+      nextStep = currentScroll.plan.length;
+    }
+    function gotoLine(i) {
+      nextStep = i - 1;
+    }
     console.error("NextStep:", nextStep);
     if (nextStep < currentScroll.plan.length) {
       console.error("execCommand");
       eval(currentScroll.plan[nextStep].command.key);
+      // check if should collect gems
+      let gemIndex = gemPositions.indexOf(playerPosition);
+      if (gemIndex > -1) {
+        console.log("Collecting a gem at", playerPosition, "gemIndex", gemIndex, gemPositions);
+        gems+=1;
+        gemPositions[gemIndex] = null;
+        gemsCollected
+      }
+      console.log("gems collected", gems, "gems remaining", gemPositions);
     } else {
       console.error("check Did Win?");
       didWin();
@@ -164,7 +221,7 @@ function GameMasterAPI(){
 
   let maxSteps = 99;
   this.executePlan = function () {
-    resetExecutionPlan();
+    this.resetExecutionPlan();
     if (currentScroll.validatePlan()) {
       let stepsTaken = 0;
       while(nextStep < currentScroll.plan.length) {
@@ -210,7 +267,16 @@ function GameMasterAPI(){
   function execCommand(action) {
       console.log(action);
 
-      var nextPlayerPosition = currentLevel.map.nodeGraph[playerPosition].indexOf(action);
+      var nextPlayerPosition = -1;
+      for (let i = 0; i < currentLevel.map.nodeGraph[playerPosition].length; i++) {
+        let node = currentLevel.map.nodeGraph[playerPosition][i];
+        if (node == action || (node instanceof Array && node.indexOf(action) > -1 )) {
+          nextPlayerPosition = i;
+          break;
+        }
+      }
+
+      // var nextPlayerPosition = currentLevel.map.nodeGraph[playerPosition].indexOf(action);
       if (nextPlayerPosition === -1) {
           throw new Error(`You cannot ${action.label} from ${playerPosition}. :(`);
       }

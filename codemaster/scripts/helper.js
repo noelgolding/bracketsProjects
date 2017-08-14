@@ -3,6 +3,14 @@ const TOP_LEFT = 0;
 const CENTER = 1;
 
 
+function createEl(tag){
+  return document.createElement(tag);
+}
+
+function el(id) {
+  return document.getElementById(id);
+}
+
 function sqr(a) {
   return a * a;
 }
