@@ -130,7 +130,6 @@ function GameMasterAPI(){
             }
 
           });
-          //availableTokens = availableTokens.concat(l.setup.conditionals.slice());
           return availableTokens;
         }
       }
@@ -192,8 +191,8 @@ function GameMasterAPI(){
 
   this.executeNextStep = function() {
     let gemsCollected = this.gemsCollected;
-    let ORANGE_TROLL = this.troll;
-    let PURPLE_TROLL = this.troll;
+    let ORANGE_TROLL = this.troll === ORANGE;
+    let PURPLE_TROLL = this.troll === PURPLE;
     function usePortal() {
       nextStep = currentScroll.plan.length;
     }
@@ -202,7 +201,7 @@ function GameMasterAPI(){
     }
     console.error("NextStep:", nextStep);
     if (nextStep < currentScroll.plan.length) {
-      console.error("execCommand");
+      console.error("playerPosition", playerPosition, "execCommand", currentScroll.plan[nextStep].command.key);
       eval(currentScroll.plan[nextStep].command.key);
       // check if should collect gems
       let gemIndex = gemPositions.indexOf(playerPosition);

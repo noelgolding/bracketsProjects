@@ -1,26 +1,24 @@
 /* ========= */
 /* CONSTANTS */
 /* ========= */
+// Characters
 const PLAYER = {label: "PLAYER"};
 const PORTAL = {label: "PORTAL"};
 const PURPLE = {label: "PURPLE_TROLL"};
 const ORANGE = {label: "ORANGE_TROLL"};
-
+// Program Token Types
 const ACTION = {label: "ACTION_TOKEN"};
 const CONDITIONAL = {label: "CONDITIONAL_TOKEN"};
-
+// Program Action/Command Tokens
 const RUN = { label: "RUN", command: {key: "execCommand( RUN )", exec: () => run()}, tokenType: ACTION, tokenIcon: "images/run_token_32.png", className: "run"};
 const SLIDE = { label: "SLIDE", command:  {key: "execCommand( SLIDE )", exec: () => slide()}, tokenType: ACTION, tokenIcon: "images/slide_token_32.png", className: "slide"};
 const JUMP = { label: "JUMP", command:  {key: "execCommand( JUMP )", exec: () => jump()}, tokenType: ACTION, tokenIcon: "images/jump_token_32.png", className: "jump"};
-
-// const COMMAND_TOKENS = [RUN, SLIDE, JUMP];
-
+// Conditional statement Tokens will be dynamically generated
 function createConditionalToken(conditional) {
-
   var test;
   if (isNaN(conditional)) {
     conditional = conditional.label;
-    test = `( ${conditional} )`;
+    test = `( ${conditional} == true )`
   } else {
     test = `( gemsCollected == ${conditional} )`;
   }
@@ -373,14 +371,6 @@ var scrollDef = [null,
     name: 5,
     image: "images/scroll5.jpg",
     nodeTypes: [PLAYER, ACTION, ACTION, ACTION, ACTION, ACTION, ACTION, ACTION, PORTAL],
-    nodeCoords: [
-      [36, 128],  // TODO : player node
-      [119, 128], // TODO : action node
-      [199, 128], // TODO : action node
-      [282, 128], // TODO : action node
-      [282, 128], // TODO : action node
-      [481, 128], // TODO : portal node
-    ],
     nodeLayout: [
       [PLAYER, 'right_arrow', [ACTION, 0], 'right_arrow', [ACTION, 1]],
       [null,   null,          null,        null,          'down_arrow'],
@@ -435,7 +425,7 @@ var scrollDef = [null,
     nodeGraph: [
       [0, 1, 0, 0, 0, 0, 0, 0, 0], // player node
       [0, 0, 1, 0, 0, 0, 0, 0, 0], // action node
-      [0, 0, 0, 1, 0, 0, 1, 0, 0], // conditional node
+      [0, 0, 0, 1, 0, 0, 2, 0, 0], // conditional node
       [0, 0, 0, 0, 1, 0, 0, 0, 0], // action node
       [0, 0, 0, 0, 0, 1, 0, 0, 0], // action node
       [0, 0, 1, 0, 0, 0, 0, 0, 0], // action node
@@ -445,24 +435,22 @@ var scrollDef = [null,
     ]
 },
 {
-    name: 8,
+    name: 8, // TODO : this is not working , need to fix first conditional path
     image: "images/scroll8.jpg",
     nodeTypes: [PLAYER, CONDITIONAL, ACTION, ACTION, ACTION, CONDITIONAL, PORTAL],
-    nodeCoords: [
-      [36, 128],  // TODO : player node
-      [119, 128], // TODO : action node
-      [199, 128], // TODO : action node
-      [282, 128], // TODO : action node
-      [282, 128], // TODO : action node
-      [481, 128], // TODO : portal node
+    nodeLayout: [
+      [null,   'down_arrow',  'left_arrow repeat-x', 'left_arrow repeat-x',  'left_arrow repeat-x', 'left_arrow repeat-x',  'left_arrow repeat-x', 'left_arrow repeat-x',  'up_arrow', null,             null],
+      [null,   'down_arrow',  'if_up_arrow',         'right_arrow',           [ACTION, 1],          'right_arrow',          'down_arrow',          null,                   'else_up_arrow',       null,             null],
+      [PLAYER, 'right_arrow', [CONDITIONAL, 0],      null,                    null,                 null,                   [ACTION, 3],           'right_arrow',         [CONDITIONAL, 4],       'if_right_arrow', PORTAL],
+      [null,   null,          'else_down_arrow',     'right_arrow',           [ACTION, 2],          'right_arrow',          'up_arrow',             null,                 null,                   null,             null],
     ],
     nodeGraph: [
       [0, 1, 0, 0, 0, 0, 0], // player node
-      [0, 0, 1, 1, 0, 0, 0], // conditional node
+      [0, 0, 1, 2, 0, 0, 0], // conditional node
       [0, 0, 0, 0, 1, 0, 0], // action node
       [0, 0, 0, 0, 1, 0, 0], // action node
       [0, 0, 0, 0, 0, 1, 0], // action node
-      [0, 1, 0, 0, 0, 0, 1], // conditional node
+      [0, 2, 0, 0, 0, 0, 1], // conditional node
       [0, 0, 0, 0, 0, 0, 0], // portal node
     ]
 },
