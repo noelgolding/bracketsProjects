@@ -1,124 +1,174 @@
 <html>
     <head>
 
-        
-        
-<!-- ***************************************** -->    
-<!-- ************** STYLE ******************** -->    
-<!-- ***************************************** -->    
+
+
+<!-- ***************************************** -->
+<!-- ************** STYLE ******************** -->
+<!-- ***************************************** -->
         <style>
             html, body {
-                position: absolute;
-                top: 0;
-                left: 0;
                 height: 100%;
                 width: 100%
             }
-            
+
             body {
+
                 margin: 0;
-/*                overflow: hidden;*/
+                overflow: hidden;
+                background-color: #f6f6f6;
             }
-            
+
             .container {
+                max-width: 100%;
                 height: 100%;
-                width: 100%;
                 padding: 10px 0 0 10px;
-                border: 1px solid black;
+/*                border: 1px solid black;*/
             }
-            
-            .table {
-                display: table;
+
+            table {
                 margin: 0;
                 padding: 0;
                 height: 100%;
             }
-            
+
             input {
                 text-align: center;
             }
-            
-            .tr {
-                display: table-row;
-            }
-            
-            .td {
-                display: table-cell;
+
+            td {
                 vertical-align: top;
                 padding: 10px;
             }
-            
+
             ul {
                 margin: 0;
                 padding: 0;
                 list-style-type: none;
             }
-            
+
             li {
                 display: inline;
                 padding: 0;
                 margin: 0;
                 vertical-align: middle;
             }
-            
+
             li input {
                 width: 30px;
                 height: 30px;
             }
-            
+
             li.colorKey {
                 padding: 0 10px 0 0;
             }
-            
+
+            li input.header {
+              background-color: #000;
+              color: #fff;
+            }
+
             .grid {
                 white-space: nowrap;
                 height: 100%;
-                overflow: auto;
+                overflow:scroll;
             }
-            
+
+            ::placeholder {
+              font-size: 65%;
+              color: #d0d0d0;
+            }
+
         </style>
-        
-        
+
+
     </head>
     <body>
-        
-        
-        
-<!-- ***************************************** -->    
-<!-- ************** HTML ********************* -->    
-<!-- ***************************************** -->    
+
+
+
+<!-- ***************************************** -->
+<!-- ************** HTML ********************* -->
+<!-- ***************************************** -->
 <div class="container">
-    <form onsubmit="event.preventDefault();">
-        <label for="width">Width</label>
-        <input type="number" id="width" name="width" value="32" min="10" max="100"/>
-        <label for="height">Height</label>
-        <input type="number" id="height" name="height" value="52" min="10" max="100"/>
-        <label for="colors">Colors</label>
-        <input type="number" id="colors" name="height" value="15" min="1" max="26"/>
-    </form>
+    <table>
+      <tr>
+          <td>
+              <form onsubmit="event.preventDefault();">
+                  <label for="pixelArtName">Name</label>
+                  <input type="text" id="pixelArtName" name="pixelArtName" />
+                  &nbsp;&nbsp;&nbsp;
+                  <button id="SavePixelArtData" name="SavePixelArtData">Save Data</button>
+                  &nbsp;&nbsp;&nbsp;
+                  <button id="SavePixelArtImage" name="SavePixelArtImage">Save Image</button>
+                  &nbsp;&nbsp;&nbsp;
+                  <input type="file" id="LoadPixelArtData" name="LoadPixelArtData" accept=".json"/>
+              </form>
+          </td>
+      </tr>
+        <tr>
+            <td>
+                <form onsubmit="event.preventDefault();">
+                    <label for="width">Width</label>
+                    <input type="number" id="width" name="width" value="32" min="10" max="100"/>
+                    <label for="height">Height</label>
+                    <input type="number" id="height" name="height" value="52" min="10" max="100"/>
+                    <label for="colors">Colors</label>
+                    <input type="number" id="colors" name="heicolorsght" value="12" min="1" max="26"/>
+                    <label for="pixelScale">Scale</label>
+                    <input type="number" id="pixelScale" name="pixelScale" value="10" min="1" max="100"/>
+                    <label for="showStroke">Show Stroke</label>
+                    <input type="checkbox" id="showStroke" name="showStroke" value="true"/>
 
-    <ul id="colorKey"></ul> 
-
-    <div class="table">
-        <div class="td">
-            <div id="pixelartGrid" class="grid"></div>
-        </div>
-        <div class="td grid">
-            <canvas id="pixelartCanvas"></canvas>
-        </div>
-    </div>
+                </form>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <ul id="colorKey"></ul>
+            </td>
+        </tr>
+        <tr class="container">
+            <td>
+                <table>
+                    <tr>
+                        <td>
+                            <div id="pixelartGrid" class="grid"></div>
+                        </td>
+                        <td>
+                            <div class="grid">
+                                <canvas id="pixelartCanvas"></canvas>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </div>
-        
-        
-        
-<!-- ***************************************** -->    
-<!-- ************* SCRIPT ******************** -->    
-<!-- ***************************************** -->    
+
+
+
+<!-- ***************************************** -->
+<!-- ************* SCRIPT ******************** -->
+<!-- ***************************************** -->
+<script src="../common/FileSaver.js"></script>
 <script>
 window.onload = function () {
+    const pixelArtName = document.getElementById('pixelArtName');
+    document.getElementById("SavePixelArtData").addEventListener('click', savePixelArtData);
+    document.getElementById("SavePixelArtImage").addEventListener('click', savePixelArtImage);
+    document.getElementById('LoadPixelArtData').addEventListener('change', loadPixelArt);
+
+    const showStroke = document.getElementById('showStroke');
+    showStroke.addEventListener('change', toggleStroke);
+
+    const pixelScale = document.getElementById('pixelScale');
+    pixelScale.addEventListener('change', updatePixelScale);
+
     const colsEl = document.getElementById('width');
     colsEl.addEventListener('change', onDimensionChange);
-    
+
     const rowsEl = document.getElementById('height');
     rowsEl.addEventListener('change', onDimensionChange);
 
@@ -132,11 +182,12 @@ window.onload = function () {
 
     const canvas = document.getElementById("pixelartCanvas");
     const ctx = canvas.getContext("2d");
-    
-    const scl = 10;
-    
-        
-    const DEFAULT_COLORS = ["#ffffff", "#000000", "#0000ff"];
+
+    let scl = 10;
+    var stroke = false;
+
+
+    const DEFAULT_COLORS = [];
     const DEFAULT_PIXELS = [
         ["","","","","","","","","",""],
         ["","","","","","","","","",""],
@@ -149,39 +200,105 @@ window.onload = function () {
         ["","","","","","","","","",""],
         ["","","","","","","","","",""],
     ];
-    
+
     var colors = DEFAULT_COLORS.slice();
     var pixels = JSON.parse(JSON.stringify(DEFAULT_PIXELS));
-    
+    var pixelArtData = {
+      name: "",
+      colors: colors,
+      pixels: pixels,
+      scl: scl
+    };
+
+    function toggleStroke(e){
+      console.log('toggleStroke', e);
+      stroke = e.target.checked;
+      updateCanvas();
+    }
+
+    function updatePixelScale(e){
+      scl = e.target.value;
+      updateCanvas();
+    }
+
+    function loadPixelArt(evt){
+      let file = evt.target.files[0];
+      let name = file.name;
+
+      var reader = new FileReader();
+      reader.onload = (e) => {
+        pixelArtData = JSON.parse(e.target.result);
+        console.log(pixelArtData);
+        pixelArtName.value = name.replace(/\..*$/g, "");
+        colors = pixelArtData.colors;
+        pixels = pixelArtData.pixels;
+        colsEl.value = pixels[0].length;
+        rowsEl.value = pixels.length;
+        colorsEl.value = colors.length;
+        scl = pixelArtData.scl || 10;
+        pixelScale.value = scl;
+        main();
+      }
+      reader.readAsText(file);
+    }
+
+    function savePixelArtData(){
+      let filename = pixelArtName.value || "PrettyPixelArt";
+      console.log("Saving Pixel Art Data!");
+      let pix = pixels.slice(0, parseInt(rowsEl.value));
+      pix = pix.map( r => {
+        return r.slice(0, parseInt(colsEl.value));
+      });
+      pixelArtData = {
+        name : filename,
+        colors : colors.slice(0, parseInt(colorsEl.value)),
+        pixels : pix,
+        scl: scl
+      }
+      pixelArtData = JSON.stringify(pixelArtData);
+      saveAs(new Blob([pixelArtData],{type:"application/json"}), `${filename}.json`);
+    }
+
+    function savePixelArtImage(){
+      let filename = pixelArtName.value || "PrettyPixelArt";
+      console.log("Saving Pixel Art Image!");
+      canvas.toBlob(function(blob) {
+          saveAs(blob, `${filename}.png`);
+      });
+    }
+
     function onColorKeyChange(e){
         console.log("onColorKeyChange", e);
         var k = parseInt(e.target.attributes.idx.value);
         var v = e.target.value;
-        
+
         event = document.createEvent("HTMLEvents");
         event.initEvent("close", true, true);
-        
+
         colors[k] = v;
         e.target.dispatchEvent(event);
-        updateCanvas(); 
+        updateCanvas();
     }
-    
+
     function onColorNumChange(){
         showColorKey();
-        updateCanvas(); 
+        updateCanvas();
     }
-    
+
     function onDimensionChange(){
         showGrid();
         updateCanvas();
     }
-    
+
     function showColorKey(){
         console.log("showColorKey");
         colorKey.innerHTML = "";
         for (var i = 0; i < colorsEl.value; i++) {
             if (!colors[i]) {
-                colors[i] = "#ffffff";
+                var r = Math.floor(Math.random() * 200) + 16;
+                var g = Math.floor(Math.random() * 200) + 16;
+                var b= Math.floor(Math.random() * 200) + 16;
+                colors[i] = `#${r.toString(16)}${g.toString(16)}${b.toString(16)}`;
             }
             var c = colors[i];
             var li = document.createElement("li");
@@ -189,16 +306,31 @@ window.onload = function () {
             li.innerHTML =  String.fromCharCode(a+i).toUpperCase() + ": <input  idx='" + i + "' id='" + id + "' type='color' value='" + c + "'/>";
             li.className = "colorKey"
             colorKey.appendChild(li);
-    
+
             document.getElementById(id).addEventListener('change', onColorKeyChange);
         }
     }
-    
+
     function showGrid(){
         console.log("showGrid");
         pixelartGrid.innerHTML = "";
+        // show numbered columns
+        var ul = document.createElement("ul");
+        var li = document.createElement("li");
+        li.innerHTML = "<input class='header' readonly='true' type='text' value='' />";
+        ul.appendChild(li);
+        for (var c = 0; c < colsEl.value; c++){
+          var li = document.createElement("li");
+          li.innerHTML = "<input class='header' readonly='true' type='text' value='" + (c) + "' />";
+          ul.appendChild(li);
+        }
+        pixelartGrid.appendChild(ul);
+
         for (var y = 0; y < rowsEl.value; y++){
             var ul = document.createElement("ul");
+            var li = document.createElement("li");
+            li.innerHTML = "<input class='header' readonly='true' type='text' value='" + (y) + "' />";
+            ul.appendChild(li);
             pixelartGrid.appendChild(ul);
             for (var x = 0; x < colsEl.value; x++){
                 if (!pixels[y]) {
@@ -209,17 +341,19 @@ window.onload = function () {
                 }
                 var id = "pixel_" + x + "_" + y;
                 var v = pixels[y][x];
-                
+
                 var li = document.createElement("li");
-                li.innerHTML = "<input type='text' x='" + x + "' y='" + y + "' id=" + id + " value='" + v + "' />"
+                var txt = (v.trim !== "") ? " value='" + v + "'" : "";
+                var xy = `(${x}, ${y})`;
+                li.innerHTML = "<input type='text' x='" + x + "' y='" + y + "' id=" + id + txt + " placeholder='" + xy + "'/>"
                 ul.appendChild(li);
-                
+
                 document.getElementById(id).addEventListener('change', updatePixels);
             }
         }
-        
+
     }
-    
+
     function updatePixels(e){
         console.log("updatePixels");
         var el = document.getElementById(e.target.id);
@@ -227,15 +361,15 @@ window.onload = function () {
         var y = el.attributes.y.value;
         var v = el.value.trim().split(" ").join("").toLocaleLowerCase();
         pixels[y][x] = v;
-        
+
         updateCanvas();
     }
-    
+
     function updateCanvas(){
         console.log("update canvas");
         canvas.width = colsEl.value * scl;
         canvas.height = rowsEl.value * scl;
-        
+
          for (var y = 0; y < rowsEl.value; y++){
             for (var x = 0; x < colsEl.value; x++){
                 var cs = (pixels[y] && pixels[y][x]) ? pixels[y][x].split("") : [""];
@@ -243,14 +377,20 @@ window.onload = function () {
                 if (cs.length === 1) {
                     drawPixel(x, y, cs[0]);
                 } else if (cs.length === 3) {
-                    drawTriangles(x, y, cs);
+                    if (cs[1] === "|") {
+                      drawVerticalPixels(x, y, cs);
+                    } else if (cs[1] === "-") {
+                      drawHorizontalPixels(x, y, cs);
+                    } else {
+                      drawTriangles(x, y, cs);
+                    }
                 } else {
                     drawPixel(x, y, "");
                 }
             }
         }
     }
-    
+
     function getColor(c) {
         var i = c.charCodeAt(0) - a;
         if (isNaN(i) || c > colorsEl.value - 1) {
@@ -258,62 +398,108 @@ window.onload = function () {
         }
         return colors[i];
     }
-    
+
     function drawPixel(x, y, c) {
         var color = getColor(c);
         if (!color) {
-            ctx.fillStyle = "white";
-            ctx.fillRect(x*scl, y*scl, scl, scl);
-            ctx.strokeStyle = "black";
-            ctx.strokeRect(x*scl, y*scl, scl, scl);
+          return;
+            // ctx.fillStyle = "white";
+            // ctx.fillRect(x*scl, y*scl, scl, scl);
+            // ctx.strokeStyle = "black";
+            // ctx.strokeRect(x*scl, y*scl, scl, scl);
         }
         ctx.fillStyle = color;
         ctx.fillRect(x*scl, y*scl, scl, scl);
-        ctx.strokeStyle = color;
-        ctx.strokeRect(x*scl, y*scl, scl, scl);
+        ctx.strokeStyle = 'black';
+        if (stroke) {
+          ctx.lineWidth = .5;
+          ctx.strokeRect(x*scl, y*scl, scl, scl);
+        }
     }
-    
+
     const triangle = {
-        "/" : [[0,0,0,scl,scl,0],[scl,0,scl,scl,0,scl]],
-        "\\": [[0,0,0,scl,scl,scl],[scl,scl,scl,0,0,0]],
+        "/" : [[0,0,0,1,1,0],[1,0,1,1,0,1]],
+        "\\": [[0,0,0,1,1,1],[1,1,1,0,0,0]],
     };
-    
+
     function drawTriangles(x, y, cs) {
         var slash = cs[1];
-        
+
         drawTriangle(x, y, cs[0], triangle[slash][0])
         drawTriangle(x, y, cs[2], triangle[slash][1])
     }
-    
+
+    function drawVerticalPixels(x, y, cs) {
+        var halfScl = scl/2;
+
+        drawPartialPixel(x*scl, y*scl, halfScl, scl, cs[0]);
+        drawPartialPixel(x*scl+halfScl, y*scl, halfScl, scl, cs[2]);
+    }
+
+    function drawHorizontalPixels(x, y, cs) {
+        var halfScl = scl/2;
+
+        drawPartialPixel(x*scl, y*scl, scl, halfScl, cs[0]);
+        drawPartialPixel(x*scl, y*scl+halfScl, scl, halfScl, cs[2]);
+    }
+
+    function drawPartialPixel(x, y, w, h, c) {
+        var color = getColor(c);
+        if (!color) {
+          return;
+        }
+
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, w, h);
+        if (stroke) {
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = .5;
+          ctx.strokeRect(x, y, w, h);
+        }
+    }
+
     function drawTriangle(x, y, c, points){
         var color = getColor(c);
         if (!color) {
-            ctx.fillStyle = "white";
-            ctx.fillRect(x*scl, y*scl, scl, scl);
-            ctx.strokeStyle = "black";
-            ctx.strokeRect(x*scl, y*scl, scl, scl);
+            return;
+            // ctx.fillStyle = "white";
+            // ctx.fillRect(x*scl, y*scl, scl, scl);
+            // ctx.strokeStyle = "black";
+            // ctx.strokeRect(x*scl, y*scl, scl, scl);
         }
         ctx.fillStyle = color;
         ctx.beginPath();
-        ctx.moveTo(x*scl + points[0], y*scl + points[1]);
-        ctx.lineTo(x*scl + points[2], y*scl + points[3]);
-        ctx.lineTo(x*scl + points[4], y*scl + points[5]);
-        ctx.lineTo(x*scl + points[0], y*scl + points[1]);
+        ctx.moveTo(x*scl + points[0]*scl, y*scl + points[1]*scl);
+        ctx.lineTo(x*scl + points[2]*scl, y*scl + points[3]*scl);
+        ctx.lineTo(x*scl + points[4]*scl, y*scl + points[5]*scl);
+        ctx.lineTo(x*scl + points[0]*scl, y*scl + points[1]*scl);
         ctx.closePath();
         ctx.fill();
+        if (stroke) {
+          ctx.strokeStyle = 'black';
+          ctx.lineWidth = .5;
+          ctx.stroke();
+        }
     }
-    
+
     function main() {
         onColorNumChange();
         onDimensionChange();
     }
-    
+
     main();
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === "KeyS" && (e.ctrlKey === true || e.metaKey === true)) {
+        savePixelArtData();
+        e.preventDefault();
+      }
+    });
 
 }
 </script>
 
-        
-    
+
+
     </body>
 </html>
