@@ -53,7 +53,7 @@ class Graph {
       let linestyle = (edge.connector == '->') ? ',style=dotted' : ''
       gdot += `${edge.from.id} [fixed=true,x=${edge.from.pos.x},y=${edge.from.pos.y}];`
       gdot += `${edge.to.id} [fixed=true,x=${edge.to.pos.x},y=${edge.to.pos.y}];`
-      gdot += `${edge.from.id} ${edge.connector} ${edge.to.id} [label=${edge.action.label.toLowerCase()},color=${c}${linestyle}];`
+      gdot += `${edge.from.id} ${edge.connector} ${edge.to.id} [label=${edge.action.label.toLowerCase()},width=4,color=${c}${linestyle}];`
     })
     gdot += '}'
     return gdot

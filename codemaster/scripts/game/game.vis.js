@@ -19,9 +19,9 @@ function loadLevel(i) {
 function selectNode(node) {
   // select node and only the outgoing edges
   let outgoing_edges = network.body.nodes[node.id].edges
-    .filter(e => e.from.id == node.id|| true !== e.edgeType.options.arrows.to.enabled )
+     .filter(e => e.from.id == node.id || true !== e.edgeType.options.arrows.to.enabled )
     .map(e => e.id)
-  network.setSelection({nodes: [node.id], edges: outgoing_edges})
+  network.setSelection({nodes:[node.id], edges:outgoing_edges},{unselectAll:true, highlightEdges:false})
 }
 
 function afterExecCommand(node) {
