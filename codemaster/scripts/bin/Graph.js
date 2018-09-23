@@ -40,6 +40,7 @@ class Graph {
     }
   }
   emitDot() {
+    // TODO externalize the styling
     let gdot = '{'
     this.edges.forEach( edge => {
       let c = 'blue'

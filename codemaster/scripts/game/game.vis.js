@@ -1,10 +1,10 @@
-let container = document.getElementById('mynetwork');
+let networkContainer = document.getElementById('mynetwork');
 
 var network
 function loadLevel(i) {
   // generate the vis network graph from the game's mapGraph
-  let level = initLevel(i)
-  let parsedData = vis.network.convertDot(level.emitDot());
+  let loadedLevel = initLevel(i)
+  let parsedData = vis.network.convertDot(loadedLevel.map.emitDot());
   let data = {
     nodes: parsedData.nodes,
     edges: parsedData.edges
@@ -12,8 +12,10 @@ function loadLevel(i) {
   let options = parsedData.options;
   options.physics = {"barnesHut": {"avoidOverlap": 1}}
   // initialize your network!
-  network = new vis.Network(container, data, options);
-  selectNode(level.startNode || level.nodes[0])
+  network = new vis.Network(networkContainer, data, options);
+  console.log(loadedLevel.setup.startNode)
+  // selectNode(level.setup.startNode)
+  selectNode(loadedLevel.map.nodes[loadedLevel.setup.startNode])
 }
 
 function selectNode(node) {

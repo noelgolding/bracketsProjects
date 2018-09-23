@@ -48,6 +48,10 @@ function initLevel(l) {
   }
 
   // set the starting node
-  __n = mapGraph.nodes[0]
-  return mapGraph
+  // __n = mapGraph.nodes[0] // setup.startNode
+  // TODO implement
+  let scrollGraph = null
+  let setup = currentLevel.setup
+  return {map: mapGraph, scroll: scrollGraph, setup: setup}
+  // return mapGraph
 }
