@@ -1,0 +1,135 @@
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
+table {
+  width: 100%;
+  height: 100%;
+}
+
+li {
+  position: relative;
+  left: 30px;
+  /*margin-left: 30px; */
+}
+
+#scrollUI td {
+  width: 16px;
+  height: 16px;
+}
+
+.PLAYER {
+  background-color: red;
+}
+
+.PORTAL {
+  background-color: gray;
+}
+
+.ACTION_TOKEN {
+  background: url('../images/action_token_32.png') center no-repeat;
+}
+
+.CONDITIONAL_TOKEN {
+  background: url('../images/conditional_token_32.png') center no-repeat;
+}
+
+.dash {
+  background: url('../images/dash_16.png') center repeat-x;
+}
+
+.right_arrow {
+  background: url('../images/right_arrow_16.png') center no-repeat;
+}
+
+.left_arrow {
+  background: url('../images/left_arrow_16.png') center no-repeat;
+}
+
+.down_arrow {
+  background: url('../images/down_arrow_16.png') center no-repeat;
+}
+
+.up_arrow {
+  background: url('../images/up_arrow_16.png') center no-repeat;
+}
+
+.if_right_arrow {
+  background: url('../images/if_right_arrow_16.png') center no-repeat;
+}
+
+.if_left_arrow {
+  background: url('../images/if_left_arrow_16.png') center no-repeat;
+}
+
+.if_down_arrow {
+  background: url('../images/if_down_arrow_16.png') center no-repeat;
+}
+
+.if_up_arrow {
+  background: url('../images/if_up_arrow_16.png') center no-repeat;
+}
+
+.else_right_arrow {
+  background: url('../images/else_right_arrow_16.png') center no-repeat;
+}
+
+.else_left_arrow {
+  background: url('../images/else_left_arrow_16.png') center no-repeat;
+}
+
+.else_down_arrow {
+  background: url('../images/else_down_arrow_16.png') center no-repeat;
+}
+
+.else_up_arrow {
+  background: url('../images/else_up_arrow_16.png') center no-repeat;
+}
+
+.repeat-x {
+  background-repeat: repeat-x;
+}
+
+#availableTokens ul li.run {
+  list-style-image: url(../images/run_token_32.png);
+}
+
+#availableTokens ul li.jump {
+  list-style-image: url(../images/jump_token_32.png);
+}
+
+#availableTokens ul li.slide {
+  list-style-image: url(../images/slide_token_32.png);
+}
+
+#availableTokens ul li.if_6 {
+  list-style-image: url(../images/if_6_32.png);
+}
+#availableTokens ul li.if_5 {
+  list-style-image: url(../images/if_5_32.png);
+}
+#availableTokens ul li.if_4 {
+  list-style-image: url(../images/if_4_32.png);
+}
+#availableTokens ul li.if_3 {
+  list-style-image: url(../images/if_3_32.png);
+}
+#availableTokens ul li.if_2 {
+  list-style-image: url(../images/if_2_32.png);
+}
+#availableTokens ul li.if_1 {
+  list-style-image: url(../images/if_1_32.png);
+}
+#availableTokens ul li.if_ORANGE_TROLL {
+  list-style-image: url(../images/if_ORANGE_TROLL_32.png);
+}
+#availableTokens ul li.if_PURPLE_TROLL {
+  list-style-image: url(../images/if_PURPLE_TROLL_32.png);
+}

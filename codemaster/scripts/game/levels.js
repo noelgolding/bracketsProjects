@@ -4,28 +4,39 @@
 // Characters
 const PLAYER = {label: "PLAYER"};
 const PORTAL = {label: "PORTAL"};
-const PURPLE = {label: "PURPLE_TROLL"};
-const ORANGE = {label: "ORANGE_TROLL"};
+const PURPLE = PURPLETROLL = PURPLE_TROLL = {label: "PURPLE_TROLL"};
+const ORANGE = ORANGETROLL = ORANGE_TROLL = {label: "ORANGE_TROLL"};
 // Program Token Types
 const ACTION = {label: "ACTION_TOKEN"};
 const CONDITIONAL = {label: "CONDITIONAL_TOKEN"};
 // Program Action/Command Tokens
-const RUN = { label: "RUN", command: {key: "execCommand( RUN )", exec: () => run()}, tokenType: ACTION, tokenIcon: "images/run_token_32.png", className: "run"};
-const SLIDE = { label: "SLIDE", command:  {key: "execCommand( SLIDE )", exec: () => slide()}, tokenType: ACTION, tokenIcon: "images/slide_token_32.png", className: "slide"};
-const JUMP = { label: "JUMP", command:  {key: "execCommand( JUMP )", exec: () => jump()}, tokenType: ACTION, tokenIcon: "images/jump_token_32.png", className: "jump"};
+const RUN = { label: "RUN",
+              command: {key: "execCommand( RUN )", exec: () => run()},
+              tokenType: ACTION, tokenIcon: "images/run_token_32.png", className: "run"};
+const SLIDE = { label: "SLIDE",
+                command:  {key: "execCommand( SLIDE )", exec: () => slide()},
+                tokenType: ACTION, tokenIcon: "images/slide_token_32.png", className: "slide"};
+const JUMP = { label: "JUMP",
+                command:  {key: "execCommand( JUMP )", exec: () => jump()},
+                tokenType: ACTION, tokenIcon: "images/jump_token_32.png", className: "jump"};
 // Conditional statement Tokens will be dynamically generated
 function createConditionalToken(conditional) {
   var test;
   if (isNaN(conditional)) {
     conditional = conditional.label;
-    test = `( ${conditional} == true )`
+    test = `( dweller == ${conditional} )`
   } else {
     test = `( gemsCollected == ${conditional} )`;
   }
   var tokenIcon = `images/if_${conditional}_32.png`;
   var className = `if_${conditional}`;
-  return {label: `if ${test} ?`, command: {key: `if ${test} ?`, exec: () => conditional(test) }, tokenType: CONDITIONAL, tokenIcon: tokenIcon, className: className};
+  return {label: `if ${test} ?`,
+          command: {key: `if ${test} ?`, exec: () => conditional(test) },
+          tokenType: CONDITIONAL, tokenIcon: tokenIcon, className: className};
 }
+
+/* ========================================================================================== */
+/* ========================================================================================== */
 
 /* =============== */
 /* MAP DEFINITIONS */
@@ -43,6 +54,7 @@ var mapDef = [null,
     [236, 201], // 4
     [423, 201], // 5
   ],
+  g: "{0 -- 1; 0 -- 2; 0 -- 4; 1 -- 2; 1 -- 3; 2 -- 5; 3 -- 4; 3 -- 5; 4 -- 5;}",
   nodeGraph: [
     [ 0,     RUN,   SLIDE, 0,     JUMP,  0     ], // 0
     [ RUN,   0,     JUMP,  SLIDE, 0,     0     ], // 1
