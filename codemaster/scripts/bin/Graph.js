@@ -51,10 +51,14 @@ class Graph {
         case SLIDE:
           c = 'green'
       }
+      let p1 = (edge.from.pos) ? `,x=${edge.from.pos.x},y=${edge.from.pos.y}` : ''
+      let p2 = (edge.to.pos) ? `,x=${edge.to.pos.x},y=${edge.to.pos.y}` : ''
       let linestyle = (edge.connector == '->') ? ',style=dotted' : ''
-      gdot += `${edge.from.id} [fixed=true,x=${edge.from.pos.x},y=${edge.from.pos.y}];`
-      gdot += `${edge.to.id} [fixed=true,x=${edge.to.pos.x},y=${edge.to.pos.y}];`
-      gdot += `${edge.from.id} ${edge.connector} ${edge.to.id} [label=${edge.action.label.toLowerCase()},width=4,color=${c}${linestyle}];`
+      let label = (edge.action.label) ? `,label=${edge.action.label.toLowerCase()}` : ''
+      let fixed = (edge.action.label) ? true : false
+      gdot += `${edge.from.id} [fixed=${fixed}${p1}];`
+      gdot += `${edge.to.id} [fixed=${fixed}${p2}];`
+      gdot += `${edge.from.id} ${edge.connector} ${edge.to.id} [width=4,color=${c}${linestyle}${label}];`
     })
     gdot += '}'
     return gdot

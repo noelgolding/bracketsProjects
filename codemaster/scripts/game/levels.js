@@ -164,7 +164,7 @@ var mapDef = [null,
     [319, 366], // 4
     [442, 221], // 5
   ],
-  nodeGraph: [
+  nodeGraph: [ // FIXME vis edge is freaking out
     [ 0,   RUN,   0,     0,     0,     0   ], // 0
     [ 0,   0,     RUN,   JUMP,  SLIDE, 0   ], // 1
     [ RUN, SLIDE, 0,     0,     JUMP,  0   ], // 2
@@ -319,7 +319,13 @@ var scrollDef = [null,
       [0, 0, 0, 0, 1, 0], // action node
       [0, 0, 0, 0, 0, 1], // action node
       [0, 0, 0, 0, 0, 0], // portal node
-    ]
+    ],
+    program: `
+      ACTION
+      ACTION
+      ACTION
+      ACTION
+    `
 },
 {
     name: 2,
@@ -338,7 +344,14 @@ var scrollDef = [null,
       [0, 0, 0, 0, 0, 1, 0], // action node
       [0, 0, 0, 0, 0, 0, 1], // action node
       [0, 0, 0, 0, 0, 0, 0], // portal node
-    ]
+    ],
+    program: `
+      ACTION
+      ACTION
+      ACTION
+      ACTION
+      ACTION
+    `
 },
 {
     name: 3,
@@ -360,7 +373,15 @@ var scrollDef = [null,
       [0, 0, 0, 0, 0, 0, 1, 0], // action node
       [0, 0, 0, 0, 0, 0, 0, 1], // action node
       [0, 0, 0, 0, 0, 0, 0, 0], // portal node
-    ]
+    ],
+    program: `
+      ACTION
+      ACTION
+      ACTION
+      ACTION
+      ACTION
+      ACTION
+    `
 },
 {
   name: 4,
@@ -370,7 +391,7 @@ var scrollDef = [null,
     [null,   null,          'down_arrow', 'left_arrow repeat-x',  'left_arrow repeat-x', 'left_arrow repeat-x',  'left_arrow repeat-x', 'left_arrow repeat-x',  'else_up_arrow'],
     [PLAYER, 'right_arrow', [ACTION, 0],  'right_arrow', [ACTION, 1],  'right_arrow', [ACTION, 2],  'right_arrow', [CONDITIONAL, 3], 'if_right_arrow', PORTAL]
   ],
-  nodeGraph: [
+  nodeGraph: [ // FIXME: vis does not look right
     [0, 1, 0, 0, 0, 0], // player node
     [0, 0, 1, 0, 0, 0], // action node
     [0, 0, 0, 1, 0, 0], // action node
@@ -378,6 +399,12 @@ var scrollDef = [null,
     [0, 2, 0, 0, 0, 1], // conditional node
     [0, 0, 0, 0, 0, 0], // portal node
   ],
+  program: `
+    ACTION
+    ACTION
+    ACTION
+    loop until ( COND )
+  `
 },
 {
     name: 5,
@@ -400,7 +427,16 @@ var scrollDef = [null,
       [0, 0, 0, 0, 0, 0, 0, 1, 0], // action node
       [0, 0, 0, 0, 0, 0, 0, 0, 1], // action node
       [0, 0, 0, 0, 0, 0, 0, 0, 0], // portal node
-    ]
+    ],
+    program: `
+      ACTION
+      ACTION
+      ACTION
+      ACTION
+      ACTION
+      ACTION
+      ACTION
+    `
 },
 {
     name: 6,
@@ -412,7 +448,7 @@ var scrollDef = [null,
       [null,   null,          null,         null,          null,         null,          null,         null,          null,         null,          'else_down_arrow'],
       [null,   null,          null,         null,          null,         null,          null,         null,          null,         null,          PORTAL],
     ],
-    nodeGraph: [
+    nodeGraph: [ // FIXME: vis does not look right
       [0, 1, 0, 0, 0, 0, 0], // player node
       [0, 0, 1, 0, 0, 0, 0], // action node
       [0, 0, 0, 1, 0, 0, 0], // action node
@@ -420,7 +456,13 @@ var scrollDef = [null,
       [0, 0, 0, 0, 0, 1, 0], // action node
       [0, 1, 0, 0, 0, 0, 2], // conditional node
       [0, 0, 0, 0, 0, 0, 0], // portal node
-    ]
+    ],
+    program: `
+      ACTION
+      ACTION
+      ACTION
+      loop until ( COND )
+    `
 },
 {
     name: 7,
@@ -444,7 +486,13 @@ var scrollDef = [null,
       [0, 0, 0, 0, 0, 0, 0, 1, 0], // action node
       [0, 0, 0, 0, 0, 0, 0, 0, 1], // action node
       [0, 0, 0, 0, 0, 0, 0, 0, 0], // portal node
-    ]
+    ],
+    program: `
+      ACTION
+      while (COND) repeat ACTION ACTION ACTION
+      ACTION
+      ACTION
+    `
 },
 {
     name: 8, // TODO : this is not working , need to fix first conditional path
@@ -464,7 +512,12 @@ var scrollDef = [null,
       [0, 0, 0, 0, 0, 1, 0], // action node
       [0, 2, 0, 0, 0, 0, 1], // conditional node
       [0, 0, 0, 0, 0, 0, 0], // portal node
-    ]
+    ],
+    program: `
+      if (COND) then ACTION else ACTION
+      ACTION
+      until (COND) loop
+    `
 },
 {
     name: 9,
@@ -489,7 +542,13 @@ var scrollDef = [null,
       [0, 0, 0, 0, 0, 0, 0, 0, 1, 0], // action node
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 1], // action node
       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], // portal node
-    ]
+    ],
+    program: `
+      until (COND) repeat ACTION ACTION ACTION ACTION
+      ACTION
+      ACTION
+      ACTION
+    `
 },
 {
     name: 10,
@@ -511,7 +570,14 @@ var scrollDef = [null,
       [0, 0, 0, 0, 0, 1, 0], // action node
       [0, 1, 0, 0, 0, 0, 1], // conditional node
       [0, 0, 0, 0, 0, 0, 0], // portal node
-    ]
+    ],
+    program: `
+      ACTION
+      ACTION
+      ACTION
+      ACTION
+      until (COND) loop
+    `
 },
 {
     name: 11,
@@ -534,7 +600,13 @@ var scrollDef = [null,
       [0, 0, 0, 0, 0, 0, 1, 0], // action node
       [0, 1, 0, 0, 0, 0, 0, 1], // conditional node
       [0, 0, 0, 0, 0, 0, 0, 0], // portal node
-    ]
+    ],
+    program: `
+      ACTION
+      if (COND) then ACTION else ACTION
+      ACTION
+      until (COND) loop
+    `
 }
                  ,
 {
@@ -560,7 +632,13 @@ var scrollDef = [null,
       [0, 0, 0, 1, 0, 0, 0, 0, 0], // action node
       [0, 0, 0, 1, 0, 0, 0, 0, 0], // action node
       [0, 0, 0, 0, 0, 0, 0, 0, 0], // portal node
-    ]
+    ],
+    program: `
+      if (COND) then ACTION
+      if (COND) then ACTION else ACTION
+      ACTION
+      until (COND) loop
+    `
 }
 ];
 

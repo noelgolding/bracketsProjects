@@ -4,6 +4,8 @@ function slide(){execCommand(SLIDE)}
 
 let __n
 let __s
+let mapGraph
+let scrollGraph
 function execCommand(cmd) {
   beforeExecCommand(__n)
   if (!__n) {
@@ -25,10 +27,11 @@ function afterExecCommand(node) {}
 
 function initLevel(l) {
   let currentLevel = level[l]
-  let currentMap = currentLevel.map
-  let nodeDefs = currentMap.nodeGraph
+  let setup = currentLevel.setup
 
   // generate the game's map graph
+  let currentMap = currentLevel.map
+  let nodeDefs = currentMap.nodeGraph
   mapGraph = new Graph(nodeDefs.length)
   for (i = 0; i < nodeDefs.length; i++) {
     var n1 = mapGraph.nodes[i]
@@ -46,12 +49,22 @@ function initLevel(l) {
       })
     }
   }
-
-  // set the starting node
-  // __n = mapGraph.nodes[0] // setup.startNode
-  // TODO implement
-  let scrollGraph = null
-  let setup = currentLevel.setup
+  // generate the game's scroll graph
+  let currentScroll = currentLevel.scroll
+  nodeDefs = currentScroll.nodeGraph
+  scrollGraph = new Graph(nodeDefs.length)
+  for (i = 0; i < nodeDefs.length; i++) {
+    var n1 = scrollGraph.nodes[i]
+    n1.nodeType = currentScroll.nodeTypes[i]
+    for (j = 0; j < nodeDefs[i].length; j++) {
+      token = nodeDefs[i][j]
+      n2 = scrollGraph.nodes[j]
+      if (token == 0) {
+        continue
+      }
+      scrollGraph.addEdge(n1, n2, token)
+    }
+  }
+  __n = mapGraph.nodes[setup.startNode]
   return {map: mapGraph, scroll: scrollGraph, setup: setup}
-  // return mapGraph
 }
